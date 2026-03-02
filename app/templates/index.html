@@ -1,5 +1,33 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>HELLO WORLD</h1>
+<div class="main">
+    <header class="navigation">
+        <div class="brand">
+            <p>ChatLink</p>
+        </div>
+        <div class="authentication">
+            <input type="button" value="signIn" id="signin-btn" class="auth-btn"  onclick="window.location.href='{{ url_for('main.signin') }}'">
+            <input type="button" value="Register" id="register-btn" class="auth-btn"  onclick="window.location.href='{{ url_for('main.register') }}'">
+        </div>
+    </header>
+
+    <div class="welcome-text">
+        <p id="stay-txt">STAY</p> 
+        <p id="connected-txt">C<span>ONNECTED</span></p>
+    </div>
+
+    <div class="cta">
+        <button class="cta-btn">COMING SOON</button>
+    </div>
+
+    <footer>
+        <div>
+            <p>privacy</p>
+            <p>disclaimer</p>
+        </div>
+        <div>Creator</div>
+        <div>socials</div>
+    </footer>
+</div>
 {% endblock %}

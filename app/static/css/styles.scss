@@ -1,0 +1,152 @@
+@font-face {
+  font-family: 'Authentic70s';
+  src: url('../fonts/authentic 70s.ttf') format('truetype');
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background:
+    radial-gradient(
+        ellipse at top,
+        rgba(255,255,255,0.9) 0%,
+        rgba(186, 186, 186, 0.35) 25%,
+        rgba(255,255,255,0) 45%
+    ),
+    linear-gradient(
+        to bottom,
+        #f0f9ff 0%,
+        #1A7A78 50%,
+        #071E1E 100%
+    );
+
+    .main{
+
+        .navigation{
+            display: flex;
+            border: 1.5px;
+            //border: 1.5px solid red;
+            align-items: center;
+            margin: 0 4rem;
+            //border: 1px solid green;
+            justify-content: space-between;
+
+
+            .brand{
+                font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
+                font-size: 2.5rem;
+                color: linear-gradient(135deg,#7DD4D0,#1A7A78);
+                font-weight: 900;
+                    // Gradient text trick
+                background: linear-gradient(135deg, #7DD4D0, #1A7A78);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                color: transparent;
+                //border: 1px solid red;
+                //p{border: 1px solid yellow;}
+            }
+
+            .authentication{
+                border: 1.5px;
+                font-weight: 400;
+
+                .auth-btn{
+                    //padding: 1.25rem 2.5rem;
+                    border-radius: 0.9rem;
+                    border: none;
+                    min-width: 6rem;
+                    min-height: 2.25rem;
+                    font-weight: bold;
+
+                    &:hover{
+                        border: none;
+                        box-shadow: 0.25rem 0.25rem 1.5rem #38bdf8;
+                        cursor: pointer;
+                    }
+                }
+
+                #signin-btn{
+                    background-color: #38bdf8;
+                    box-shadow: 0 0 1rem #38bdf8;
+                    color: #ffffff;
+                    &:hover{
+                        box-shadow: 0.25rem 0.25rem 1.5rem #38bdf8;
+                    }
+                }
+
+                #register-btn{
+                    margin-left: 1rem;
+                    background-color: transparent;
+                    border: 1px solid #071E1E60;
+                    color: #0A2828;
+                }
+            }
+        }
+
+        .welcome-text{
+            font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
+            font-size: 12rem;
+            margin: 0rem 3rem;
+            position: relative;
+            color: #3AADA8;
+
+            //border: 1px solid red;
+            
+            #stay-txt{
+                margin: 0;
+                padding-left: 10rem;
+                color: #0A2828;
+            }
+            #connected-txt{
+                position: absolute;
+                left: 31.32rem;
+                top: -7rem;
+
+                span{
+                    font-size: 8rem;
+                }
+            }
+        }
+
+        .cta{
+            margin: 10rem 3rem;
+            //border: 1px solid green;
+            display: flex;
+            justify-content: center;
+
+            .cta-btn{
+                border-radius: 8rem;
+                border: 1px solid #1A7A78;
+                min-width: 12rem;
+                min-height: 3rem;
+                background-color: #7DD4D0;
+                box-shadow: 0.25rem 0.25rem 3rem #3AADA8;
+                font-weight: bold;
+            }
+        }
+
+        footer{
+            display: flex;
+            width: 100%;
+            min-height: 8rem;
+            justify-content: space-between;
+            align-items: center;
+            background-color: linear-gradient(to bottom,#1A7A78 20%,#000000 100%);
+            //border: 1px solid dodgerblue;
+            color: white;
+
+            div{
+                display: inherit;
+                column-gap: 2rem;
+            }
+        }
+    }
+
+
+}
