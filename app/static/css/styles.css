@@ -12,13 +12,14 @@ body {
   min-height: 100%;
   background: radial-gradient(ellipse at top, rgba(255, 255, 255, 0.9) 0%, rgba(186, 186, 186, 0.35) 25%, rgba(255, 255, 255, 0) 45%), linear-gradient(to bottom, #f0f9ff 0%, #1A7A78 50%, #071E1E 100%);
 }
-body .main .navigation {
+
+.main .navigation {
   display: flex;
   align-items: center;
   margin: 0 4rem;
   justify-content: space-between;
 }
-body .main .navigation .brand {
+.main .navigation .brand {
   font-family: "Authentic70s", "Edu NSW ACT Hand Cursive", cursive;
   font-size: 2.5rem;
   font-weight: 900;
@@ -28,10 +29,10 @@ body .main .navigation .brand {
   background-clip: text;
   color: transparent;
 }
-body .main .navigation .authentication {
+.main .navigation .authentication {
   font-weight: 400;
 }
-body .main .navigation .authentication .auth-btn {
+.main .navigation .authentication .auth-btn {
   border-radius: 0.9rem;
   border: none;
   min-width: 6rem;
@@ -39,51 +40,51 @@ body .main .navigation .authentication .auth-btn {
   font-weight: bold;
   transition: box-shadow 0.2s ease;
 }
-body .main .navigation .authentication .auth-btn:hover {
+.main .navigation .authentication .auth-btn:hover {
   border: none;
   box-shadow: 0.25rem 0.25rem 1.5rem #38bdf8;
   cursor: pointer;
 }
-body .main .navigation .authentication #signin-btn {
+.main .navigation .authentication #signin-btn {
   background-color: #38bdf8;
   box-shadow: 0 0 1.5rem #38bdf8;
   color: #ffffff;
 }
-body .main .navigation .authentication #signin-btn:hover {
+.main .navigation .authentication #signin-btn:hover {
   box-shadow: 0.25rem 0.25rem 1.5rem #38bdf8;
 }
-body .main .navigation .authentication #register-btn {
+.main .navigation .authentication #register-btn {
   margin-left: 1rem;
   background-color: transparent;
   border: 1px solid rgba(7, 30, 30, 0.3764705882);
   color: #0A2828;
 }
-body .main .welcome-text {
+.main .welcome-text {
   font-family: "Authentic70s", "Edu NSW ACT Hand Cursive", cursive;
   font-size: 12rem;
   margin: 0rem 3rem;
   position: relative;
   color: #3AADA8;
 }
-body .main .welcome-text #stay-txt {
+.main .welcome-text #stay-txt {
   margin: 0;
   padding-left: 10rem;
   color: #0A2828;
 }
-body .main .welcome-text #connected-txt {
+.main .welcome-text #connected-txt {
   position: absolute;
   left: 31.32rem;
   top: -7rem;
 }
-body .main .welcome-text #connected-txt span {
+.main .welcome-text #connected-txt span {
   font-size: 8rem;
 }
-body .main .cta {
+.main .cta {
   margin: 10rem 3rem;
   display: flex;
   justify-content: center;
 }
-body .main .cta .cta-btn {
+.main .cta .cta-btn {
   border-radius: 8rem;
   border: 1px solid #1A7A78;
   min-width: 12rem;
@@ -92,7 +93,7 @@ body .main .cta .cta-btn {
   box-shadow: 0.25rem 0.25rem 3rem #3AADA8;
   font-weight: bold;
 }
-body .main footer {
+.main footer {
   display: flex;
   width: 100%;
   min-height: 6.5rem;
@@ -101,19 +102,20 @@ body .main footer {
   background: #071E1E;
   color: white;
 }
-body .main footer div {
+.main footer div {
   display: inherit;
   -moz-column-gap: 2rem;
        column-gap: 2rem;
 }
-body .overlay {
+
+.overlay {
   display: flex;
   justify-content: center;
   align-items: center;
   background: rgba(0, 0, 0, 0.2509803922);
   min-height: 100vh;
 }
-body .overlay .form-container {
+.overlay .form-container {
   margin: auto;
   min-width: 30rem;
   min-height: 25rem;
@@ -124,25 +126,25 @@ body .overlay .form-container {
   color: #3AADA8;
   font-weight: bold;
 }
-body .overlay .form-container h1 {
+.overlay .form-container h1 {
   color: #0D3D3C;
   text-shadow: 0 0 0.5rem #1A7A78;
   font-family: "Authentic70s", "Edu NSW ACT Hand Cursive", cursive;
   font-size: 3rem;
 }
-body .overlay .form-container p {
+.overlay .form-container p {
   color: #1A7A78;
   margin: -1rem 0 0 0;
   text-shadow: 0 0 0 #7DD4D0;
   font-family: "Authentic70s", "Edu NSW ACT Hand Cursive", cursive;
   font-size: 1.5rem;
 }
-body .overlay .form-container p span {
+.overlay .form-container p span {
   font-size: 2rem;
   font-weight: lighter;
   font-style: italic;
 }
-body .overlay .form-container form {
+.overlay .form-container form {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -151,15 +153,14 @@ body .overlay .form-container form {
   min-width: -moz-fit-content;
   min-width: fit-content;
   background: transparent;
-  border-radius: inherit;
 }
-body .overlay .form-container form label {
+.overlay .form-container form label {
   margin: 0 0 0.2rem -16rem;
 }
-body .overlay .form-container form #confirm-password-label {
+.overlay .form-container form #confirm-password-label {
   margin: 0 0 0.2rem -12rem;
 }
-body .overlay .form-container form input {
+.overlay .form-container form input {
   width: 20rem;
   min-height: 2rem;
   margin: 0 0 2rem 0;
@@ -168,27 +169,27 @@ body .overlay .form-container form input {
   font-weight: 600;
   color: #0D3D3C;
 }
-body .overlay .form-container form input[type=text], body .overlay .form-container form input[type=password] {
+.overlay .form-container form input[type=text], .overlay .form-container form input[type=password] {
   padding: 0 0 0 0.5rem;
 }
-body .overlay .form-container form input[type=text]:focus, body .overlay .form-container form input[type=password]:focus {
+.overlay .form-container form input[type=text]:focus, .overlay .form-container form input[type=password]:focus {
   outline: none;
   border: none;
   box-shadow: 0 0 0.8rem #3AADA8;
 }
-body .overlay .form-container form input[type=text]::-moz-placeholder, body .overlay .form-container form input[type=password]::-moz-placeholder {
+.overlay .form-container form input[type=text]::-moz-placeholder, .overlay .form-container form input[type=password]::-moz-placeholder {
   font-weight: 600;
 }
-body .overlay .form-container form input[type=text]::placeholder, body .overlay .form-container form input[type=password]::placeholder {
+.overlay .form-container form input[type=text]::placeholder, .overlay .form-container form input[type=password]::placeholder {
   font-weight: 600;
 }
-body .overlay .form-container form input[type=submit] {
+.overlay .form-container form input[type=submit] {
   margin: 2rem;
   background: transparent;
   border: 1.2px solid #1A7A78;
   color: #1A7A78;
 }
-body .overlay .form-container form input[type=submit]:hover {
+.overlay .form-container form input[type=submit]:hover {
   cursor: pointer;
   box-shadow: 0 0 0.8rem rgba(125, 212, 208, 0.3764705882);
 }/*# sourceMappingURL=styles.css.map */

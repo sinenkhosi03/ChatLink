@@ -24,220 +24,210 @@ body{
         #1A7A78 50%,
         #071E1E 100%
     );
-
-    .main{
-
-        .navigation{
-            display: flex;
-            //border: 1.5px solid red;
-            align-items: center;
-            margin: 0 4rem;
-            //border: 1px solid green;
-            justify-content: space-between;
+}
 
 
-            .brand{
-                font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
-                font-size: 2.5rem;
-                font-weight: 900;
-                    // Gradient text trick
-                background: linear-gradient(135deg, #7DD4D0, #1A7A78);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                color: transparent;
-            }
+// LANDING PAGE SYLING
+.main{
 
-            .authentication{
-                font-weight: 400;
+    .navigation{
+        display: flex;
+        align-items: center;
+        margin: 0 4rem;
+        justify-content: space-between;
 
-                .auth-btn{
-                    //padding: 1.25rem 2.5rem;
-                    border-radius: 0.9rem;
-                    border: none;
-                    min-width: 6rem;
-                    min-height: 2.25rem;
-                    font-weight: bold;
-                    transition: box-shadow 0.2s ease;
 
-                    &:hover{
-                        border: none;
-                        box-shadow: 0.25rem 0.25rem 1.5rem #38bdf8;
-                        cursor: pointer;
-                    }
-                }
-
-                #signin-btn{
-                    background-color: #38bdf8;
-                    box-shadow: 0 0 1.5rem #38bdf8;
-                    color: #ffffff;
-                    &:hover{
-                        box-shadow: 0.25rem 0.25rem 1.5rem #38bdf8;
-                    }
-                }
-
-                #register-btn{
-                    margin-left: 1rem;
-                    background-color: transparent;
-                    border: 1px solid #071E1E60;
-                    color: #0A2828;
-                }
-            }
+        .brand{
+            font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #7DD4D0, #1A7A78);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
         }
 
-        .welcome-text{
-            font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
-            font-size: 12rem;
-            margin: 0rem 3rem;
-            position: relative;
-            color: #3AADA8;
+        .authentication{
+            font-weight: 400;
 
-            //border: 1px solid red;
-            
-            #stay-txt{
-                margin: 0;
-                padding-left: 10rem;
+            .auth-btn{
+                border-radius: 0.9rem;
+                border: none;
+                min-width: 6rem;
+                min-height: 2.25rem;
+                font-weight: bold;
+                transition: box-shadow 0.2s ease;
+
+                &:hover{
+                    border: none;
+                    box-shadow: 0.25rem 0.25rem 1.5rem #38bdf8;
+                    cursor: pointer;
+                }
+            }
+
+            #signin-btn{
+                background-color: #38bdf8;
+                box-shadow: 0 0 1.5rem #38bdf8;
+                color: #ffffff;
+                &:hover{
+                    box-shadow: 0.25rem 0.25rem 1.5rem #38bdf8;
+                }
+            }
+
+            #register-btn{
+                margin-left: 1rem;
+                background-color: transparent;
+                border: 1px solid #071E1E60;
                 color: #0A2828;
             }
-            #connected-txt{
-                position: absolute;
-                left: 31.32rem;
-                top: -7rem;
-
-                span{
-                    font-size: 8rem;
-                }
-            }
         }
+    }
 
-        .cta{
-            margin: 10rem 3rem;
-            //border: 1px solid green;
-            display: flex;
-            justify-content: center;
-
-            .cta-btn{
-                border-radius: 8rem;
-                border: 1px solid #1A7A78;
-                min-width: 12rem;
-                min-height: 3rem;
-                background-color: #7DD4D0;
-                box-shadow: 0.25rem 0.25rem 3rem #3AADA8;
-                font-weight: bold;
-            }
+    .welcome-text{
+        font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
+        font-size: 12rem;
+        margin: 0rem 3rem;
+        position: relative;
+        color: #3AADA8;
+        
+        #stay-txt{
+            margin: 0;
+            padding-left: 10rem;
+            color: #0A2828;
         }
+        #connected-txt{
+            position: absolute;
+            left: 31.32rem;
+            top: -7rem;
 
-        footer{
-            display: flex;
-            width: 100%;
-            min-height: 6.5rem;
-            justify-content: space-between;
-            align-items: center;
-            background: #071E1E;
-            //border: 1px solid dodgerblue;
-            color: white;
-
-            div{
-                display: inherit;
-                column-gap: 2rem;
+            span{
+                font-size: 8rem;
             }
         }
     }
 
-    .overlay{
+    .cta{
+        margin: 10rem 3rem;
         display: flex;
         justify-content: center;
-        align-items: center;
-        background: #00000040;
-        min-height: 100vh;
 
-        .form-container{
-            margin: auto;
-            min-width: 30rem;
-            min-height: 25rem;
-            background: transparent;
-            border-radius: 0.8rem;
-            box-shadow: 0 0 5rem #1A7A7860;
-            text-align: center;
-            color: #3AADA8;
+        .cta-btn{
+            border-radius: 8rem;
+            border: 1px solid #1A7A78;
+            min-width: 12rem;
+            min-height: 3rem;
+            background-color: #7DD4D0;
+            box-shadow: 0.25rem 0.25rem 3rem #3AADA8;
             font-weight: bold;
+        }
+    }
 
-            h1{
+    footer{
+        display: flex;
+        width: 100%;
+        min-height: 6.5rem;
+        justify-content: space-between;
+        align-items: center;
+        background: #071E1E;
+        color: white;
+
+        div{
+            display: inherit;
+            column-gap: 2rem;
+        }
+    }
+}
+
+.overlay{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #00000040;
+    min-height: 100vh;
+
+    .form-container{
+        margin: auto;
+        min-width: 30rem;
+        min-height: 25rem;
+        background: transparent;
+        border-radius: 0.8rem;
+        box-shadow: 0 0 5rem #1A7A7860;
+        text-align: center;
+        color: #3AADA8;
+        font-weight: bold;
+
+        h1{
+            color: #0D3D3C;
+            text-shadow: 0 0 0.5rem #1A7A78;
+            font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
+            font-size: 3rem;
+        }
+
+        p{
+            color: #1A7A78;
+            margin: -1rem 0 0 0;
+            text-shadow: 0 0 0 #7DD4D0;
+            font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
+            font-size: 1.5rem;
+
+            span{
+                
+                font-size: 2rem;
+                font-weight: lighter;
+                font-style: italic;
+            }
+        }
+
+        form{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: inherit;
+            min-width: fit-content;
+            background: transparent;
+
+            label{
+                margin: 0 0 0.2rem -16rem;
+            }
+            #confirm-password-label{
+                margin: 0 0 0.2rem -12rem;
+            }
+
+            input{
+                width: 20rem;
+                min-height: 2rem;
+                margin: 0 0 2rem 0;
+                border-radius: 0.5rem;
+                border: none;
+                font-weight: 600;
                 color: #0D3D3C;
-                text-shadow: 0 0 0.5rem #1A7A78;
-                font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
-                font-size: 3rem;
             }
+            input[type="text"], input[type="password"]{
+                padding: 0 0 0 0.5rem;
 
-            p{
-                color: #1A7A78;
-                margin: -1rem 0 0 0;
-                text-shadow: 0 0 0 #7DD4D0;
-                font-family: 'Authentic70s', "Edu NSW ACT Hand Cursive", cursive;
-                font-size: 1.5rem;
-
-                span{
-                    
-                    font-size: 2rem;
-                    font-weight: lighter;
-                    font-style: italic;
-                }
-            }
-
-            form{
-                //border: 1px solid red;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: inherit;
-                min-width: fit-content;
-                background: transparent;
-                border-radius: inherit;
-
-                label{
-                    margin: 0 0 0.2rem -16rem;
-                }
-                #confirm-password-label{
-                    margin: 0 0 0.2rem -12rem;
-                }
-
-                input{
-                    width: 20rem;
-                    min-height: 2rem;
-                    margin: 0 0 2rem 0;
-                    border-radius: 0.5rem;
+                &:focus{
+                    outline: none;
                     border: none;
+                    box-shadow: 0 0 0.8rem #3AADA8;
+                }
+
+                &::placeholder{
                     font-weight: 600;
-                    color: #0D3D3C;
                 }
-                input[type="text"], input[type="password"]{
-                    padding: 0 0 0 0.5rem;
+            }
+            input[type="submit"] {
+                margin: 2rem;
+                background: transparent;
+                border: 1.2px solid #1A7A78;
+                color: #1A7A78;
 
-                    &:focus{
-                        outline: none;
-                        border: none;
-                        box-shadow: 0 0 0.8rem #3AADA8;
-                    }
-
-                    &::placeholder{
-                        font-weight: 600;
-                    }
-                }
-                input[type="submit"] {
-                    margin: 2rem;
-                    background: transparent;
-                    border: 1.2px solid #1A7A78;
-                    color: #1A7A78;
-
-                    &:hover{
-                        cursor: pointer;
-                        box-shadow: 0 0 0.8rem #7DD4D060;
-                    }
+                &:hover{
+                    cursor: pointer;
+                    box-shadow: 0 0 0.8rem #7DD4D060;
                 }
             }
         }
     }
-
-
 }
