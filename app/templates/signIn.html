@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="overlay">
+    <div class="form-container">
+        <h1>WELCOME BACK😉</h1>
+        <p>Sign in and stay <span>Connected</span>...</p>
+        <form action="{{ url_for('main.signin') }}" method="post">
+            <label for="username" >Username</label>
+            <input type="text" name="username" id="username" placeholder="Enter Your Username">
+            
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" placeholder="Enter Your Password">
+            
+            <input type="submit" value="sign in">
+        </form>
+    </div>
+</div>
+{% endblock %}

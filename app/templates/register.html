@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="overlay">
+    <div class="form-container">
+        <h1>ChatLink</h1>
+        <p><span>Link up</span> with your people anytime and anywhere...</p>
+        <form action="{{ url_for('main.signin') }}" method="post">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" placeholder="Enter Your Username">
+            
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" placeholder="Enter Your Password">
+            
+            <label for="confirm-password" id="confirm-password-label">Confirm Password</label>
+            <input type="password" name="confirm-password" id="confirm-password" placeholder="Confirm Password">
+            
+            <input type="submit" value="register">
+        </form>
+    </div>
+</div>
+{% endblock %}
