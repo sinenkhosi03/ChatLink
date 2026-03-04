@@ -233,6 +233,7 @@ body{
 }
 
 .main-chat-container{
+    position: relative;
     min-height: 100vh;
     background-color: #050810;
     display: flex;
@@ -240,9 +241,12 @@ body{
     align-items: center;
 
     .chat-overlay{
+        position: fixed;
         display: flex;
-        min-width: 95%;
-        min-height: 90vh;
+        top: 3rem;
+        bottom: 3rem;
+        left: 3rem;
+        right: 3rem;
         margin: auto;
         border: 1px solid dodgerblue;
         padding: 1rem;
@@ -308,32 +312,120 @@ body{
             border-radius: 0.8rem;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            position: relative;
+            padding-top: 3rem;
+            // justify-content: center;
+            // align-items: center;
 
             .search-bar{
                 flex: 0.05;
-                border: 1px solid pink;
                 width: 100%;
+                display: flex;
+                position: absolute;
+                top: 0;
                 
                 input{
                     min-width: 15rem;
-                    width: 100%;
-                    min-height: 2rem;
-                    margin: 0 0 2rem 0;
-                    border-radius: 0.5rem;
-                    border: none;
-                    font-weight: 600;
-                    color: #0D1F4A;
+                    width: 90%;
+                    height: 2rem;
+                    margin: 0 0 0.5rem 0;
                     
+                    border: 1px solid #0D1F4A;
+                    border-radius: 0.5rem 0.2rem 0.2rem 0.5rem;
+                    font-weight: 600;
+                    color: #6AAEF8;
+                    background: #080F1E;
+
+                    padding: 0 0 0 0.5rem;
+
+                    &:focus{
+                        outline: none;
+                        border: none;
+                        box-shadow:inset 0 0 0.2rem #0D1F4A;
+                    }
+
+                    &::placeholder{
+                        //font-weight: 600;
+                        color: #0D1F4A;
+                    }
+                    
+                }
+                button{
+                    width: 2.5rem;
+                    height: 2rem;
+                    background: #080F1E;
+                    border-radius: 0 0.5rem  0.5rem 0;
+                    border: none;
+                    cursor: pointer;
+                    &:active{
+                        background: #050810;
+                    }
                 }
             }
 
             .recent-chat{
-                border: 1px solid orange;
+                //border: 1px solid orange;
                 flex: 0.95;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+                
+                h3{
+                    margin: 0;
+                    color: #6AAEF8;
+                }
+                .chat-container{
+                    border: 1px solid red;
+                    flex: 1;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    min-height: 0;
+                    
+                    .chat{
+                        //border: 1px solid pink;
+                        display: flex;
+                        column-gap: 0.25rem;
+                        color: white;
+                        align-items: center;
+                        margin-top: 1rem;
+
+                        img{
+                            flex: 0.2;
+                            border-radius: 50%;
+                            //margin: auto;
+                            max-width: 3rem;
+                            max-height: 3rem;
+                            border: 1px solid #0D1F4A;
+                            padding: 0.5rem;
+                        }
+
+                        .chat-details{
+                            //border: 1px solid cyan;
+                            flex: 0.8;
+                            h4{
+                                margin: 0;
+                            }
+                            .message-clip{
+                                min-width: 8rem;
+                                max-width: 16rem;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                margin: 0.25rem 0 0 0;
+                            }
+                        }
+
+                        .message-clip-time{
+                            //border: 1px solid red;
+                            text-align: center;
+                            width: 100%;
+                        }
+                    }
+                }
+
             }
         }
+
         .messages-displayer{
             border: 1px solid pink;
             flex: 0.65;
