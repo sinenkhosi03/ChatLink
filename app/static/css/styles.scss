@@ -256,6 +256,7 @@ body{
             border-radius: 0.8rem;
             display: flex;
             flex-direction: column;
+            background: #080F1E20;
             
             .logo-panel{
                 flex: 0.2;
@@ -304,6 +305,8 @@ body{
             display: flex;
             flex-direction: column;
             position: relative;
+            background: #080F1E60;
+            padding: 0.5rem;
 
             .search-bar{
                 flex: 0.05;
@@ -353,6 +356,7 @@ body{
                 display: flex;
                 flex-direction: column;
                 min-height: 0;
+
                 
                 h3{
                     margin: 0;
@@ -484,7 +488,7 @@ body{
 
             .messages-container{
                 border-radius: 0 0 0.8rem 0.8rem;
-                background: #080F1E;
+                background: #080F1E90;
                 flex: 1;
                 overflow-y: auto;
                 overflow-x: hidden;
@@ -542,7 +546,7 @@ body{
                     position: fixed;
                     display: flex;
                     bottom: 5rem;
-                    left: 40rem;
+                    left: 45rem;
                     right: 10rem;
                     border-radius: 0.8rem;
                     align-items: center;
