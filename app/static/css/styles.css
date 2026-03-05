@@ -350,6 +350,7 @@ body {
 }
 .main-chat-container .chat-overlay .recent-chat-container .recent-chat .chat-container .chat .chat-details h4 {
   margin: 0;
+  color: #6AAEF8;
 }
 .main-chat-container .chat-overlay .recent-chat-container .recent-chat .chat-container .chat .chat-details .message-clip {
   min-width: 8rem;
@@ -470,6 +471,7 @@ body {
   background: #050810;
   border: none;
   color: #6AAEF8;
+  padding: 0.5rem;
 }
 .main-chat-container .chat-overlay .messages-displayer .messages-container .message-bar {
   position: fixed;
