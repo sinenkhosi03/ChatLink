@@ -391,6 +391,7 @@ body{
                         color: white;
                         align-items: center;
                         margin-top: 1rem;
+                        cursor: pointer;
 
                         img{
                             flex: 0.2;
@@ -508,6 +509,7 @@ body{
                     border-radius: 0.8rem;
                     margin: 0 0 0.5rem 0;
                     color: #080F1E;
+                    min-width: 5rem;
 
                     h5{
                         margin: -0.28rem 0 0 -1.5rem;

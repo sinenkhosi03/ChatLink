@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="main-chat-container">
+    <div class="chat-overlay">
+        <div class="action-menu">
+            <div class="logo-panel">
+                <p>ChatLink</p>
+            </div>
+            <div class="action-panel">
+                <a href="" id="chat-icon"><img src="{{ url_for('static', filename='images/chat.png') }}"></a>
+                <a href="" id="grp-icon"><img src="{{ url_for('static', filename='images/grps.png') }}"></a>
+            </div>
+            <div class="profile-panel">
+                <a href=""><img src="{{ url_for('static', filename='images/circle-user.png') }}"></a>
+                <a href=""><img src="{{ url_for('static', filename='images/leave.png') }}" alt=""></a>
+            </div>
+        </div>
+        
+        <div class="recent-chat-container">
+            <div class="search-bar">
+                <input type="search" name="" id="recent-chat-search" placeholder="Search">
+                <button><img src="{{ url_for('static', filename='images/search.png') }}" alt=""></button>
+            </div>
+            <div class="recent-chat">
+                <h3>Messages</h3>
+                <div class="chat-container">    
+                    <div class="chat" role="button" onclick="window.location.href='{{ url_for('main.chat') }}'">
+                        <img src="{{ url_for('static', filename='images/user.png') }}" alt="">
+                        <div class="chat-details">
+                            <h4 class="chat-name">ChatLink</h4>
+                            <p class="message-clip">WELCOME! Every message you receive will appear here.</p>
+                        </div>
+                        <p class="message-clip-time">5:00pm</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="messages-displayer">
+
+            <div class="messages-container">
+   
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

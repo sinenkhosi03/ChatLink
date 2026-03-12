@@ -25,7 +25,7 @@
             <div class="recent-chat">
                 <h3>Messages</h3>
                 <div class="chat-container">    
-                    <div class="chat" role="button" onclick="window.location.href='{{ url_for('main.register') }}'">
+                    <div class="chat" role="button" onclick="window.location.href='{{ url_for('main.chat') }}'">
                         <img src="{{ url_for('static', filename='images/user.png') }}" alt="">
                         <div class="chat-details">
                             <h4 class="chat-name">ChatLink</h4>
@@ -79,7 +79,11 @@
                     <textarea name="message" id="message-input" placeholder="Type your message..."></textarea>
                     <label for="message-send-btn">
                         <img src="{{ url_for('static', filename='images/send.png') }}">
-                        <input type="button" value="send" id="message-send-btn" style="visibility: hidden;">
+                        <input type="button" value="send" id="message-send-btn" style="visibility: hidden;"
+                            onclick="
+                            messageDisplayer('kenneth matimba', 'reciver');
+                            "
+                        >
                     </label>
                 </div>
 
@@ -88,4 +92,40 @@
         
     </div>
 </div>
+<script>
+    function messageDisplayer(name, person){
+        let input = document.querySelector("#message-input");
+        let messageDisplayer = document.querySelector(".messages-container");
+
+        console.log("Welcome to chatlink");
+        const message = input.value;
+
+        let msgCont = document.createElement("div");
+        if (person=="sender"){
+            msgCont.className = "recieve-message";
+            msgCont.innerHTML = `
+                        <div class="chat-box">
+                            <p>
+                            ${message}
+                            </p>
+                        </div>
+            `;
+        }
+        else{
+            msgCont.className = "recieve-message";
+            msgCont.innerHTML = `
+                        <h5>${name}</h5>
+                            <p>
+                            ${message}
+                            </p>
+            `;
+            console.log("came here")
+        }
+
+        messageDisplayer.appendChild(msgCont);
+        console.log(message);
+
+        input.value = "";
+    }
+</script>
 {% endblock %}
