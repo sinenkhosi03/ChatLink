@@ -1,8 +1,12 @@
 from flask import Blueprint, render_template, url_for, redirect, request, flash
-import time
-from app.storage import add_user, user_exist
+
+from flask_login import login_user, logout_user, login_required
+from app.models import User
+from app.client_interface import client_application
 
 main = Blueprint("main", __name__)
+
+client = client_application()
 
 @main.route("/")
 def index():
@@ -13,14 +17,20 @@ def signin():
     if request.method == "POST":
         name = request.form["username"]
         pw = request.form["password"]
-        #print(name, pw)
-        # if name==username:
-        #     print("right name")
-        #     if pw == password:
-        #        logedin = True
-        #        print("log in was a success.")
-        #        print(f"welcome: {name}")
-        #        return render_template("chatHome.html")
+
+        login, err_msg = client.login(name, pw)
+        if not login:
+            flash("Incorrect login details or server timeout, try again.", category="message")
+            print(err_msg)
+            return redirect(url_for("main.signin"))
+        
+        # print("log in was a success.")
+        # print(f"welcome: {name}")
+        print(name)
+        user = User(name)
+        login_user(user)
+
+        return redirect(url_for("main.chat_home"))
     return render_template("signIn.html")
 
 
@@ -31,23 +41,46 @@ def register():
         password = request.form["password"]
         confirm_pw = request.form["confirm-password"]
         # print(username, password, confirm_pw)
-        if not user_exist(username):
-            
-            if confirm_pw == password:
-                print(username, password, confirm_pw)
-                add_user(username, password)
-                print("it works")
-                redirect(url_for("main.signin"))
-            else:
-                flash("passwords do not match")
-                redirect(url_for("main.register"))
-        else:
-            flash("username exists, try a different one.")
-            redirect(url_for("main.register"))
+ 
+        if confirm_pw != password:
+            flash("passwords do not match")
+            return redirect(url_for("main.register"))
+        
+        registration = client.register(username, password)
+        if not registration:
+            flash("Error occured, try again or try a different username.")
+            return redirect(url_for("main.register")) 
+        
+        # print(username, password, confirm_pw)
+        return redirect(url_for("main.signin"))
+        
         
         
     return render_template("register.html")
 
+@main.route("/home")
+@login_required
+def chat_home():
+
+    return render_template("chatHome.html")
+
 @main.route("/chat")
+@login_required
 def chat():
     return render_template("chatScreen.html")
+
+
+# @main.route("/chat/fileshare", methods=["GET", "POST"])
+# def file_share():
+#     if request.method=="POST":
+#         file = request.form["file-upload"]
+#         print(file)
+#     return redirect(url_for("main.chat"))
+
+
+@main.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("main.signin"))
+

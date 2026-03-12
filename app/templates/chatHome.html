@@ -8,12 +8,12 @@
                 <p>ChatLink</p>
             </div>
             <div class="action-panel">
-                <a href="" id="chat-icon"><img src="{{ url_for('static', filename='images/chat.png') }}"></a>
+                <a href="{{ url_for('main.chat') }}" id="chat-icon"><img src="{{ url_for('static', filename='images/chat.png') }}"></a>
                 <a href="" id="grp-icon"><img src="{{ url_for('static', filename='images/grps.png') }}"></a>
             </div>
             <div class="profile-panel">
                 <a href=""><img src="{{ url_for('static', filename='images/circle-user.png') }}"></a>
-                <a href=""><img src="{{ url_for('static', filename='images/leave.png') }}" alt=""></a>
+                <a href="{{ url_for('main.logout') }}"><img src="{{ url_for('static', filename='images/leave.png') }}"></a>
             </div>
         </div>
         

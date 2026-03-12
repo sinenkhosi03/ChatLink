@@ -5,6 +5,17 @@
     <div class="form-container">
         <h1>ChatLink</h1>
         <p><span>Link up</span> with your people anytime and anywhere...</p>
+        <div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mt-2">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+            
         <form action="{{ url_for('main.register') }}" method="post">
             <label for="username">Username</label>
             <input type="text" name="username" id="username" placeholder="Enter Your Username">

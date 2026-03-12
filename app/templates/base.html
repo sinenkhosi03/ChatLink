@@ -4,10 +4,13 @@
         <meta charset="UTF-8">
         <title>{% block title %}ChatLink{% endblock %}</title>
         <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css')}}">
-        
+        <script src="https://unpkg.com/dexie@latest/dist/dexie.js" defer></script>
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+        <script src="{{ url_for('static', filename='scripts/scripts.js') }}" defer></script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+
     </head>
     
     <body>
