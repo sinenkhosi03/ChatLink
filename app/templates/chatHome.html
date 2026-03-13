@@ -8,7 +8,7 @@
                 <p>ChatLink</p>
             </div>
             <div class="action-panel">
-                <a href="{{ url_for('main.chat') }}" id="chat-icon"><img src="{{ url_for('static', filename='images/chat.png') }}"></a>
+                <a href="{{ url_for('main.chat_home') }}" id="chat-icon"><img src="{{ url_for('static', filename='images/chat.png') }}"></a>
                 <a href="" id="grp-icon"><img src="{{ url_for('static', filename='images/grps.png') }}"></a>
             </div>
             <div class="profile-panel">
@@ -24,15 +24,23 @@
             </div>
             <div class="recent-chat">
                 <h3>Messages</h3>
-                <div class="chat-container">    
-                    <div class="chat" role="button" onclick="window.location.href='{{ url_for('main.chat') }}'">
-                        <img src="{{ url_for('static', filename='images/user.png') }}" alt="">
-                        <div class="chat-details">
-                            <h4 class="chat-name">ChatLink</h4>
-                            <p class="message-clip">WELCOME! Every message you receive will appear here.</p>
-                        </div>
-                        <p class="message-clip-time">5:00pm</p>
-                    </div>
+                <div class="chat-container">
+
+                    {% for user in online_users %}
+                        {% if user != current_user.id %}
+                            <div class="chat" role="button"
+                                onclick="window.location.href='{{ url_for('main.chat', friend=user) }}'">
+
+                                <img src="{{ url_for('static', filename='images/user.png') }}" alt="">
+
+                                <div class="chat-details">
+                                    <h4 class="chat-name">{{ user }}</h4>
+                                </div>
+
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
                 </div>
             </div>
         </div>

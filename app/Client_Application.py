@@ -11,13 +11,11 @@ import csv
 
 class client_application:
     def __init__(self, ip_addr="0.0.0.0", peer_port=8000):
-        self.server_ip = "192.168.0.135"
+        self.server_ip = "196.47.245.85"
         self.server_port = 12000
         self.username = None
         self.ip_addr = ip_addr
         self.peer_port = peer_port
-        self.counter = 0
-        self.online_users = None
 
         self.client_socket = None
         self.udp_socket = None
@@ -27,17 +25,12 @@ class client_application:
         self.message_queue = queue.Queue()
         self.waiting_for_response = False
 
-        self.login_event = threading.Event()
-        self.login_success = False
-        self.login_response = None
-        self.login_error_message = ""
-
         self.peer_lock = threading.Lock()
         self.listener_started = False
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip=" 192.168.0.135", server_port=12000):
+    def tcp_connect(self, server_ip, server_port):
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -248,11 +241,13 @@ class client_application:
                 self.receive_file(sock, filename, filesize)
 
         elif command == "VIEW_ONLINE":
-            self.online_users = body.get("online_users", [])
+            online_users = body.get("users", [])
+            print("Online Users: ", online_users)
+
 
         elif command == "VIEW_GROUP":
             groups = body.get("groups", [])
-            print("Groups:", groups)
+            print("Groups: ", groups)
 
         elif command == "EXIT_CHAT":
             print("The chat has ended by the other party.")
@@ -319,21 +314,27 @@ class client_application:
         while True:
             try:
                 msg = self.client_socket.recv(2048).decode()
+              #  print(f"\n[Debug] Received raw message: {msg.strip()}")
+
                 if not msg:
-                    print("Server disconnected1.")
+                    print("Server disconnected.")
                     break
 
                 buffer += msg
+
                 while '\n' in buffer:
                     message, buffer = buffer.split('\n', 1)
+
                     if not message.strip():
                         continue
+
                     if self.waiting_for_response:
                         self.message_queue.put(message)
                     else:
                         self.receive_message(message)
-            except Exception as e:
-                print("Server error:", e) 
+
+            except Exception:
+                print("Server disconnected.")
                 break
 
     # CONNECT REQUEST HANDLING
@@ -530,210 +531,10 @@ class client_application:
                 received_bytes += len(chunk)
         print(f"Received file {filename}")
 
-    def register(self, username, password):
-        """Register a new user"""
-        #self.username = username
-        self.tcp_connect(self.server_ip, self.server_port)
-        self.udp_connect(self.server_ip, self.server_port)
-        
-        register_message = self.send_command(
-            "REGISTER",
-            {"username": username, "password": password}
-        )
-        self.send_message_tcp(register_message)
-        
-        self.waiting_for_response = True
-        try:
-            response = self.message_queue.get(timeout=5)
-            response_dict = json.loads(response)
-            
-            if response_dict["header"]["command"] == "ACK":
-                return True, "Registration successful"
-            else:
-                return False, str(response_dict.get("body", {}))
-        except queue.Empty:
-            return False, "Registration timeout"
-        finally:
-            self.waiting_for_response = False
-
-
-    def is_connected(self):
-        return self.client_socket is not None and self.client_socket.fileno() != -1  # CHANGED
-
-    def is_peer_connected(self):
-        """Check if peer is connected"""
-        return self.peer_socket is not None
-        
-    def login_thread(self, username, password):
-        """thread to handle login process"""
-        self.username = username
-        
-        # Connect to server
-        self.tcp_connect(self.server_ip, self.server_port)
-        self.udp_connect(self.server_ip, self.server_port)
-        
-        # Set waiting for response
-        self.waiting_for_response = True
-        
-        # Send login message
-        login_message = self.send_command(
-            "LOGIN",
-            {"username": username, "password": password}
-        )
-        self.send_message_tcp(login_message)
-        
-        # Wait for response from queue
-        try:
-            response = self.message_queue.get(timeout=5)
-            response_dict = json.loads(response)
-            
-            if response_dict["header"]["command"] == "ACK":
-                print("Login successful!")
-                self.login_success = True
-                self.login_response = "ACK"
-            else:
-                self.login_error_message = str(response_dict.get("body", {}))
-                print(f"Login failed: {self.login_error_message}")
-                self.login_success = False
-                self.login_response = "ERROR"
-                
-        except queue.Empty:
-            self.login_error_message = "Login timeout - server not responding"
-            print(self.login_error_message)
-            self.login_success = False
-            self.login_response = "TIMEOUT"
-        except Exception as e:
-            self.login_error_message = f"Login error: {e}"
-            print(self.login_error_message)
-            self.login_success = False
-            self.login_response = "ERROR"
-        finally:
-            self.waiting_for_response = False
-            self.login_event.set()
-        
-        return self.login_success
-
-    def login(self, username, password, timeout=10):
-        """Blocking login that waits for result"""
-        self.login_event.clear()
-        self.login_success = False
-        self.login_error_message = ""
-        
-        login_thread = threading.Thread(
-            target=self.login_thread,
-            args=(username, password),
-            daemon=True
-        )
-        login_thread.start()
-        
-        if not self.login_event.wait(timeout=timeout):
-            return False, "Login process timed out"
-            
-        return self.login_success, self.login_error_message
-
-    def login_async(self, username, password, callback=None):
-        """Non-blocking login with optional callback"""
-        def login_wrapper():
-            success, error = self.login(username, password)
-            if callback:
-                callback(success, error)
-        
-        threading.Thread(target=login_wrapper, daemon=True).start()
-            
-
-    def one_on_one_chat_connection(self, peer_username):
-        if not self.listener_started:
-            threading.Thread(target=self.start_peer_listener, daemon=True).start()
-            time.sleep(0.5)
-        if not self.peer_connected_event.wait(timeout=30):
-                return
-        if self.peer_connected_event.is_set():
-            print("A peer is already connected. Starting chat.")
-        else:
-            connect_request_message = self.send_command(
-                "CONNECT_REQUEST",
-                {"target_user": peer_username}
-            )
-            self.send_message_tcp(connect_request_message)
-
-            connected = self.get_connect_message_for_peer(timeout=10)
-
-            if not connected:
-                print("Could not establish peer connection.")
-                return
-
-    def send_message_121(self, message, rec_id):
-        data_message = self.send_data("SEND_TEXT", {"message": message})
-        sent_ok = self.send_message_peer(data_message)
-        self.offline_data_send(rec_id, data_message)
-
-        if not sent_ok:
-            print("Message could not be sent.")
-            return False       
-
-        if message == "EXIT_CHAT":
-            with self.peer_lock:
-                try:
-                    if self.peer_socket:
-                        self.peer_socket.close()
-                except:
-                    pass
-                self.peer_socket = None
-            self.peer_connected_event.clear()
-            return False
-        return True 
-    
-    def send_message_group(self, message, group_name):
-        gmessage = self.send_data(
-            "GTEXT_MESSAGE",
-            {"group-name": group_name, "message": message}
-        )
-        self.send_message_tcp(gmessage)
-
-        if message == 'done':
-            return False
-        return True
-
-    def icreate_group(self, group_name, members):
-        create_group_message = self.send_command(
-            "CREATE_GROUP",
-            {"group_name": group_name, "members": members}
-        )
-        self.send_message_tcp(create_group_message)
-
-    #added from chat
-    def view_online_users(self):
-
-        import json
-
-        self.waiting_for_response = True
-
-        message = self.send_command("VIEW_ONLINE", {})
-        self.send_message_tcp(message)
-
-        try:
-            response = self.message_queue.get(timeout=5)
-            #print("Raw response from server:", response)
-
-            response = json.loads(response)   # <-- FIX
-            body = response.get("body",{})
-            self.online_users = body.get("users", [])
-            #print(self.users)
-        except queue.Empty:
-            print("Server timeout")
-            self.waiting_for_response = False
-            return []
-
-        self.waiting_for_response = False
-
-        return self.online_users
-
-    def logout(self):
-        logout_message = self.send_command("LOGOUT", "")
-        self.send_message_tcp(logout_message)
-        time.sleep(0.5)
-        self.close_connection()
-
+def view_online_users(self):
+    request_message = self.send_command("VIEW_ONLINE", "")
+    self.send_message_tcp(request_message)
+    time.sleep(1)
 
 def main():
     client = None
@@ -861,10 +662,8 @@ def main():
                 client.peer_connected_event.clear()
                 break
 
-    def create_group():
+    def create_group(group_name=None):
         nonlocal client
-
-        group_name = input("Enter the group name: ").strip()
         members = []
 
         while True:
@@ -876,14 +675,14 @@ def main():
 
         create_group_message = client.send_command(
             "CREATE_GROUP",
-            {"group_name": group_name, "members": members}
+            {"group-name": group_name, "members": members}
         )
         client.send_message_tcp(create_group_message)
 
         message = input("Enter the message to the group ('done' to finish): ")
         gmessage = client.send_data(
             "GTEXT_MESSAGE",
-            {"group_name": group_name, "message": message}
+            {"group-name": group_name, "message": message}
         )
         client.send_message_tcp(gmessage)
 
@@ -907,20 +706,68 @@ def main():
                 break
     def GROUP_CHAT():
         nonlocal client
-
-        menu = int(input("1. Create Group\n2. View Group\n").strip())
-
+        menu = int(input("1. Create Group\n2. View Groups\n3. Join Group Chat\n").strip())
         if menu == 1:
-            create_group()
+            group_name = input("Enter the group name: ").strip()
+            create_group(group_name)
 
         elif menu == 2:
             view_group_message = client.send_command("VIEW_GROUP", {})
             client.send_message_tcp(view_group_message)
-
-    def view_online_users():
-        nonlocal client
-        request_message = client.send_command("VIEW_ONLINE", "")
-        client.send_message_tcp(request_message)
+            print("Request sent. Check above for group list.")
+            time.sleep(1)
+            
+        elif menu == 3:
+            group_name = input("Enter the group name to join: ").strip()
+            
+            print(f"\n=== Joined group: {group_name} ===")
+            
+            #flag for the chat loop
+            in_group_chat = True
+            
+            while in_group_chat:
+                try:
+                    message = input("You: ")
+                    
+                    if message == "FILE_TRANSFER":
+                        filepath = input("Enter the file path: ").strip()
+                        filetype = input("Enter the file type: ").strip()
+                        
+                        # For group file transfers, you might need a different command
+                        # Check if your server supports GFILE_TRANSFER
+                        client.send_file(filepath, filetype, group_name)
+                        continue
+                        
+                    elif message == "EXIT_CHAT":
+                        # Send leave notification
+                        leave_msg = client.send_data(
+                            "GTEXT_MESSAGE",
+                            {"group-name": group_name, "message": "left the chat"}
+                        )
+                        client.send_message_tcp(leave_msg)
+                        
+                        in_group_chat = False
+                        break
+                        
+                    else:
+                        # Send regular message
+                        gmessage = client.send_data(
+                            "GTEXT_MESSAGE",
+                            {"group-name": group_name, "message": message}
+                        )
+                        client.send_message_tcp(gmessage)
+                    time.sleep(0.8) 
+                        
+                except KeyboardInterrupt:
+                    print("\nLeaving group chat...")
+                    in_group_chat = False
+                    break
+                except Exception as e:
+                    print(f"Error in group chat: {e}")
+                    in_group_chat = False
+                    break
+            
+            print("Returned to main menu.")
 
     def logout():
         nonlocal client
@@ -940,7 +787,7 @@ def main():
     else:
         print("Invalid choice.")
         return
-
+    
     while True:
         main_menu2()
         choice2 = input("Enter your choice: ").strip()
@@ -948,7 +795,7 @@ def main():
         if choice2 == '1':
             one_on_one_chat()
         elif choice2 == '2':
-            create_group()
+            GROUP_CHAT()
         elif choice2 == '3':
             view_online_users()
         elif choice2 == '4':
@@ -963,3 +810,19 @@ def main():
 if __name__ == "__main__":
     main()
 
+"""
+body {
+    "target": "name of person receiving the file",
+    "fileName": "name of the file being sent",
+    "filetype": "type of the file being sent",
+    "fileSize": "size of the file in bytes"}
+"""
+
+"""fileTypes:
+
+images
+audio
+videos
+documents
+other
+"""

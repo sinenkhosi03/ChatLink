@@ -4,8 +4,11 @@ from app import socketio
 
 @socketio.on('connect')
 def handle_connect(auth):
-    join_room(current_user.id)
-    print(f"{current_user.id} connected")
+    if current_user.is_authenticated:
+        join_room(str(current_user.id))
+    else:
+        print("Unauthenticated socket connection rejected")
+        return False
 
 @socketio.on('receive_message')
 def handle_message(data):

@@ -42,6 +42,8 @@ async function messageDisplay(){
     console.log(message);
 
     input.value = "";
+
+    window.location.href=`{{ url_for('main.chat', friend=user, message=${message}) }}`
 }
 
 //for receiving msg
