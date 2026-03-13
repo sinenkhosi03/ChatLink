@@ -12,7 +12,7 @@ from app import socketio
 
 class client_application:
     def __init__(self, ip_addr="0.0.0.0", peer_port=8000):
-        self.server_ip = "172.30.32.1"
+        self.server_ip = "196.42.96.83"
         self.server_port = 12000
         self.username = None
         self.ip_addr = ip_addr
@@ -37,7 +37,7 @@ class client_application:
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip="172.30.32.1", server_port=12000):
+    def tcp_connect(self, server_ip="196.42.96.83", server_port=12000):
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -299,20 +299,8 @@ class client_application:
                     break
 
                 msg = current_peer_socket.recv(2048).decode()
-
-                if not msg:
-                    print("Peer disconnected.")
-                    with self.peer_lock:
-                        try:
-                            current_peer_socket.close()
-                        except:
-                            pass
-                        if self.peer_socket is current_peer_socket:
-                            self.peer_socket = None
-                    self.peer_connected_event.clear()
-                    break
-
-                buffer += msg
+                if msg:
+                   buffer += msg
 
                 while '\n' in buffer:
                     message, buffer = buffer.split('\n', 1)
@@ -320,16 +308,7 @@ class client_application:
                         self.receive_message(message)
 
             except Exception:
-                print("Peer disconnected.")
-                with self.peer_lock:
-                    try:
-                        if self.peer_socket:
-                            self.peer_socket.close()
-                    except:
-                        pass
-                    self.peer_socket = None
-                self.peer_connected_event.clear()
-                break
+                print("Peer disconnected.2")
 
     def tcp_receive_thread(self):
         buffer = ""
@@ -696,8 +675,8 @@ class client_application:
         data_message = self.send_data("SEND_TEXT", {"message": message})
         sent_ok = self.send_message_peer(data_message)
 
-        if sent_ok:
-            self.offline_data_send(rec_id, data_message)
+        # if sent_ok:
+        #     self.offline_data_send(rec_id, data_message)
         
         if message == "EXIT_CHAT" and sent_ok:
             with self.peer_lock:

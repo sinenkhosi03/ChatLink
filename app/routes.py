@@ -118,6 +118,8 @@ def send_message():
     friend = data.get("friend")
     message = data.get("message")
 
+    print(message)
+
     # client.send_message(friend, message)   # your protocol call
     sent_status = client.send_message_121(message, friend)
 
