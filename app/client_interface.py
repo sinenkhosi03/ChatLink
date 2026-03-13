@@ -11,7 +11,7 @@ import csv
 
 class client_application:
     def __init__(self, ip_addr="0.0.0.0", peer_port=8000):
-        self.server_ip = "192.168.0.135"
+        self.server_ip = "196.24.134.50"
         self.server_port = 12000
         self.username = None
         self.ip_addr = ip_addr
@@ -37,7 +37,7 @@ class client_application:
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip=" 192.168.0.135", server_port=12000):
+    def tcp_connect(self, server_ip="196.24.134.50", server_port=12000):
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -57,7 +57,7 @@ class client_application:
         self.udp_socket = socket(AF_INET, SOCK_DGRAM)
         self.udp_socket.bind(("", 0))
 
-    def tcp_connect_peer(self, peer_ip, peer_port):
+    def tcp_connect_peer(self, peer_ip, peer_port=8000):
         try:
             peer_socket = socket(AF_INET, SOCK_STREAM)
             peer_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)

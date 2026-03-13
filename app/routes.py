@@ -90,7 +90,7 @@ def chat_home():
 
 @main.route("/chat/<friend>")
 @login_required
-def chat(friend, message=""):
+def chat(friend):
     client = clients.get(current_user.id)   # CHANGED
 
     if not client:
@@ -98,7 +98,23 @@ def chat(friend, message=""):
 
     online_users = client.view_online_users()
 
-    if message != "":
-        client.send
-
     return render_template("chatScreen.html", online_users=online_users, friend=friend)
+
+
+@main.route("/send_message", methods=["POST"])
+@login_required
+def send_message():
+
+    client = clients.get(current_user.id)
+
+    if not client:
+        return {"status": "error"}, 400
+
+    data = request.json
+    friend = data.get("friend")
+    message = data.get("message")
+
+    # client.send_message(friend, message)   # your protocol call
+    print(message)
+
+    return {"status": "ok"}

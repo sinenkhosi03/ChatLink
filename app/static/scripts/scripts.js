@@ -16,11 +16,14 @@ async function messageDisplay(){
     let messageDisplayer = document.querySelector(".messages-container");
     const chat_name = messageDisplayer.dataset.friend;
     let file = document.querySelector("#file-upload")
-
+   
     console.log(chat_name)
 
     console.log("Welcome to chatlink");
     const message = input.value;
+
+    if(message.trim() === "") return;
+
     const date_time = new Date().toISOString();
 
     let msgCont = document.createElement("div");
@@ -43,7 +46,16 @@ async function messageDisplay(){
 
     input.value = "";
 
-    window.location.href=`{{ url_for('main.chat', friend=user, message=${message}) }}`
+    await fetch("/send_message", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            friend: `${chat_name}`,
+            message: `${message}`
+        })
+    });
 }
 
 //for receiving msg
