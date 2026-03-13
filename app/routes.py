@@ -99,7 +99,9 @@ def chat(friend):
         return redirect(url_for("main.signin"))
 
     online_users = client.view_online_users()
-    client.one_on_one_chat_connection(friend)
+    connection_status = client.one_on_one_chat_connection(friend)
+    if not connection_status:
+        return redirect(url_for("main.chat_home"))
     return render_template("chatScreen.html", online_users=online_users, friend=friend)
 
 
@@ -117,14 +119,18 @@ def send_message():
     message = data.get("message")
 
     # client.send_message(friend, message)   # your protocol call
-    client.send_message_121(message, friend)
-    socketio.emit(
-        "new_message",
-        {
-            "chat_name": current_user.id,
-            "message": message
-        },
-        room=friend
-    )
+    sent_status = client.send_message_121(message, friend)
+
+    if not sent_status:
+        print("Msg not sent")
+        return {"status":"failed"}
+    # socketio.emit(
+    #     "new_message",
+    #     {
+    #         "chat_name": current_user.id,
+    #         "message": message
+    #     },
+    #     room=friend
+    # )
 
     return {"status": "ok"}

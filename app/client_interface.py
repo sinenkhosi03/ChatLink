@@ -12,13 +12,12 @@ from app import socketio
 
 class client_application:
     def __init__(self, ip_addr="0.0.0.0", peer_port=8000):
-        self.server_ip = "196.24.134.50"
+        self.server_ip = "172.30.32.1"
         self.server_port = 12000
         self.username = None
         self.ip_addr = ip_addr
         self.peer_port = peer_port
         self.counter = 0
-        self.online_users = None
 
         self.client_socket = None
         self.udp_socket = None
@@ -38,7 +37,7 @@ class client_application:
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip="196.24.134.50", server_port=12000):
+    def tcp_connect(self, server_ip="172.30.32.1", server_port=12000):
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -58,7 +57,7 @@ class client_application:
         self.udp_socket = socket(AF_INET, SOCK_DGRAM)
         self.udp_socket.bind(("", 0))
 
-    def tcp_connect_peer(self, peer_ip, peer_port=8000):
+    def tcp_connect_peer(self, peer_ip, peer_port):
         try:
             peer_socket = socket(AF_INET, SOCK_STREAM)
             peer_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
@@ -213,6 +212,11 @@ class client_application:
         elif command == "ERROR":
             print("Received ERROR message:", body)
 
+        elif command == "LISTEN":
+            if not self.listener_started:
+                threading.Thread(target=self.start_peer_listener, daemon=True).start()
+                time.sleep(0.5)
+
         elif command == "PING":
             pong_message = self.send_command("PONG", "")
             self.send_message_udp(pong_message)
@@ -222,7 +226,6 @@ class client_application:
             sender = header.get("senderId", "Unknown") #added
             print(f"\n{header.get('senderId', 'Unknown')}: {display_message}")
 
-            #added
             socketio.emit(
                 "new_message",
                 {
@@ -231,6 +234,8 @@ class client_application:
                 },
                 room=self.username
             )
+            self.offline_data_rec(message_dict)
+
             self.offline_data_rec(message_dict)
 
         elif command == "FILE_TRANSFER":
@@ -260,7 +265,8 @@ class client_application:
                 self.receive_file(sock, filename, filesize)
 
         elif command == "VIEW_ONLINE":
-            self.online_users = body.get("online_users", [])
+            online_users = body.get("online_users", [])
+            print("Online users:", online_users)
 
         elif command == "VIEW_GROUP":
             groups = body.get("groups", [])
@@ -331,21 +337,26 @@ class client_application:
         while True:
             try:
                 msg = self.client_socket.recv(2048).decode()
+
                 if not msg:
-                    print("Server disconnected1.")
+                    print("Server disconnected.1")
                     break
 
                 buffer += msg
+
                 while '\n' in buffer:
                     message, buffer = buffer.split('\n', 1)
+
                     if not message.strip():
                         continue
+
                     if self.waiting_for_response:
                         self.message_queue.put(message)
                     else:
                         self.receive_message(message)
-            except Exception as e:
-                print("Server error:", e) 
+
+            except Exception:
+                print("Server disconnected.2")
                 break
 
     # CONNECT REQUEST HANDLING
@@ -544,7 +555,7 @@ class client_application:
 
     def register(self, username, password):
         """Register a new user"""
-        #self.username = username
+        self.username = username
         self.tcp_connect(self.server_ip, self.server_port)
         self.udp_connect(self.server_ip, self.server_port)
         
@@ -568,8 +579,8 @@ class client_application:
         finally:
             self.waiting_for_response = False
 
-
     def is_connected(self):
+        """Check if connected to server"""
         return self.client_socket is not None and self.client_socket.fileno() != -1  # CHANGED
 
     def is_peer_connected(self):
@@ -653,37 +664,42 @@ class client_application:
         threading.Thread(target=login_wrapper, daemon=True).start()
             
 
-    def one_on_one_chat_connection(self, peer_username):
-        if not self.listener_started:
-            threading.Thread(target=self.start_peer_listener, daemon=True).start()
-            time.sleep(0.5)
-        if not self.peer_connected_event.wait(timeout=30):
-                return
-        if self.peer_connected_event.is_set():
-            print("A peer is already connected. Starting chat.")
-        else:
-            connect_request_message = self.send_command(
+    def one_on_one_chat_connection(self, peer_username=None):
+        if peer_username is not None:
+            req_msg = self.send_command(
                 "CONNECT_REQUEST",
                 {"target_user": peer_username}
             )
-            self.send_message_tcp(connect_request_message)
-
+            self.send_message_tcp(req_msg)
+            
             connected = self.get_connect_message_for_peer(timeout=10)
+            if connected:
+                print("Peer connected! Starting chat.")
+                return True
+            else:
+                print("Not connected")
+                return False
 
-            if not connected:
-                print("Could not establish peer connection.")
-                return
+        else:
+            if self.peer_connected_event.wait(timeout=30):
+                print("Got connection")
+                return True
+            else:
+                print("Timed out waiting for connection.")
+                return False
 
     def send_message_121(self, message, rec_id):
+        with self.peer_lock:
+            if self.peer_socket is None:
+                return False
+            
         data_message = self.send_data("SEND_TEXT", {"message": message})
         sent_ok = self.send_message_peer(data_message)
-        self.offline_data_send(rec_id, data_message)
 
-        if not sent_ok:
-            print("Message could not be sent.")
-            return False       
-
-        if message == "EXIT_CHAT":
+        if sent_ok:
+            self.offline_data_send(rec_id, data_message)
+        
+        if message == "EXIT_CHAT" and sent_ok:
             with self.peer_lock:
                 try:
                     if self.peer_socket:
@@ -693,8 +709,9 @@ class client_application:
                 self.peer_socket = None
             self.peer_connected_event.clear()
             return False
-        return True 
-    
+        
+        return sent_ok
+        
     def send_message_group(self, message, group_name):
         gmessage = self.send_data(
             "GTEXT_MESSAGE",
@@ -706,14 +723,13 @@ class client_application:
             return False
         return True
 
-    def icreate_group(self, group_name, members):
+    def create_group(self, group_name, members):
         create_group_message = self.send_command(
             "CREATE_GROUP",
             {"group_name": group_name, "members": members}
         )
         self.send_message_tcp(create_group_message)
 
-    #added from chat
     def view_online_users(self):
 
         import json
