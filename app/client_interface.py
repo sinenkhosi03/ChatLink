@@ -689,9 +689,6 @@ class client_application:
             
         data_message = self.send_data("SEND_TEXT", {"message": message})
         sent_ok = self.send_message_peer(data_message)
-
-        # if sent_ok:
-        #     self.offline_data_send(rec_id, data_message)
         
         if message == "EXIT_CHAT" and sent_ok:
             with self.peer_lock:
@@ -718,23 +715,20 @@ class client_application:
         return True
 
     def create_group(self, group_name, members):
-        print("Client_Application",group_name, members)
         create_group_message = self.send_command(
             "CREATE",
             {"user": self.username,"group-name": group_name, "members": members}
         )
-        print("Sending message:", create_group_message)
         self.send_message_tcp(create_group_message)
 
-        #RECENT CHAT EDITION
         self.waiting_for_response = True
 
         try:
             response = self.message_queue.get(timeout=5)
-            #added
+            response = json.loads(response)
             header = response.get("header", {})
             status = header.get("command", "")
-            print("Server response:", response)
+
             if status=="ACK":
                 return True
         except:
@@ -753,12 +747,10 @@ class client_application:
 
         try:
             response = self.message_queue.get(timeout=5)
-            #print("Raw response from server:", response)
 
-            response = json.loads(response)   # <-- FIX
+            response = json.loads(response)  
             body = response.get("body",{})
             self.online_users = body.get("users", [])
-            #print(self.users)
         except queue.Empty:
             print("Server timeout")
             self.waiting_for_response = False
@@ -775,14 +767,13 @@ class client_application:
         self.close_connection()
 
 
-    #aaded by me
     def view_groups(self):
         """Request available groups from the server and return them"""
 
-        self.waiting_for_response = True
-
         message = self.send_command("VIEW_GROUPS", {})
         self.send_message_tcp(message)
+
+        self.waiting_for_response = True
 
         try:
             response = self.message_queue.get(timeout=5)
@@ -798,234 +789,3 @@ class client_application:
 
         self.waiting_for_response = False
         return groups
-
-
-
-def main():
-    client = None
-
-    server_ip = input("Enter server IP address: ").strip()
-    server_port = 12000
-
-    def main_menu1():
-        print("Main Menu:\n")
-        print("1. REGISTER\n2. LOGIN\n")
-
-    def register():
-        print("Welcome")
-        nonlocal client
-
-        username = input("Enter your username: ").strip()
-        password = input("Enter your password: ").strip()
-
-        client = client_application(username)
-        client.tcp_connect(server_ip, server_port)
-        client.udp_connect(server_ip, server_port)
-
-        register_message = client.send_command(
-            "REGISTER",
-            {"username": client.username, "password": password}
-        )
-        client.send_message_tcp(register_message)
-        time.sleep(1)
-
-    def login():
-        print("Welcome back")
-        nonlocal client
-
-        username = input("Enter your username: ").strip()
-        password = input("Enter your password: ").strip()
-
-        client = client_application(username)
-        client.tcp_connect(server_ip, server_port)
-        client.udp_connect(server_ip, server_port)
-
-        login_message = client.send_command(
-            "LOGIN",
-            {"username": client.username, "password": password}
-        )
-        client.send_message_tcp(login_message)
-        time.sleep(1)
-
-    def main_menu2():
-        print("Main Menu:\n")
-        print("1. 1-on-1 chat\n2. Group Chat\n3. View Online Users\n4. LOGOUT\n")
-
-    def one_on_one_chat():
-        nonlocal client
-
-        if not client.listener_started:
-            threading.Thread(target=client.start_peer_listener, daemon=True).start()
-            time.sleep(0.5)
-
-        req_or_accept = int(input("1. Request User\n2. Accept Connection\n").strip())
-        rec_id = None
-        if req_or_accept == 1:
-            user = input("Enter the username of the person you want to chat with: ").strip()
-            rec_id = user
-            if not user:
-                print("No username entered.")
-                return
-        elif req_or_accept == 2:
-            #still need to figure out how to get the rec_id for offline data
-            #
-            #
-            print("Waiting for incoming connection...")
-            if not client.peer_connected_event.wait(timeout=30):
-                print("Timed out waiting for connection.")
-                return
-            print("Peer connected! Starting chat.")
-        # If a peer already connected, just use that
-        if client.peer_connected_event.is_set():
-            print("A peer is already connected. Starting chat.")
-        else:
-            connect_request_message = client.send_command(
-                "CONNECT_REQUEST",
-                {"target_user": user}
-            )
-            client.send_message_tcp(connect_request_message)
-
-            connected = client.get_connect_message_for_peer(timeout=10)
-
-            if not connected:
-                print("Could not establish peer connection.")
-                return
-
-        print("You can now chat. Type EXIT_CHAT to leave.")
-
-        while True:
-            with client.peer_lock:
-                if client.peer_socket is None:
-                    print("Chat ended.")
-                    break
-
-            message = input("You: ")
-
-            if message == "FILE_TRANSFER":
-                filepath = input("Enter the file path: ").strip()
-                filetype = input("Enter the file type (images, audios, videos, documents, other): ").strip()
-
-                client.send_file(filepath, filetype, rec_id)
-                continue
-
-            data_message = client.send_data("SEND_TEXT", {"message": message})
-            sent_ok = client.send_message_peer(data_message)
-            client.offline_data_send(rec_id, data_message)
-
-            if not sent_ok:
-                print("Message could not be sent.")
-                break
-
-            if message == "EXIT_CHAT":
-                with client.peer_lock:
-                    try:
-                        if client.peer_socket:
-                            client.peer_socket.close()
-                    except:
-                        pass
-                    client.peer_socket = None
-                client.peer_connected_event.clear()
-                break
-
-    def create_group():
-        nonlocal client
-
-        group_name = input("Enter the group name: ").strip()
-        members = []
-
-        while True:
-            member = input("Enter the username of the member you want to add to the group (or type 'done' to finish): ").strip()
-            if member == 'done':
-                break
-            if member:
-                members.append(member)
-
-        create_group_message = client.send_command(
-            "CREATE_GROUP",
-            {"group_name": group_name, "members": members}
-        )
-        client.send_message_tcp(create_group_message)
-
-        message = input("Enter the message to the group ('done' to finish): ")
-        gmessage = client.send_data(
-            "GTEXT_MESSAGE",
-            {"group_name": group_name, "message": message}
-        )
-        client.send_message_tcp(gmessage)
-
-        while True:
-            message = input("You: ")
-
-            if message == "FILE_TRANSFER":
-                filepath = input("Enter the file path: ").strip()
-                filetype = input("Enter the file type (images, audios, videos, documents, other): ").strip()
-
-                client.send_file(filepath, filetype, group_name)
-                continue
-
-            gmessage = client.send_data(
-                "GTEXT_MESSAGE",
-                {"group-name": group_name, "message": message}
-            )
-            client.send_message_tcp(gmessage)
-
-            if message == 'done':
-                break
-    def GROUP_CHAT():
-        nonlocal client
-
-        menu = int(input("1. Create Group\n2. View Group\n").strip())
-
-        if menu == 1:
-            create_group()
-
-        elif menu == 2:
-            view_group_message = client.send_command("VIEW_GROUP", {})
-            client.send_message_tcp(view_group_message)
-
-    def view_online_users():
-        nonlocal client
-        request_message = client.send_command("VIEW_ONLINE", "")
-        client.send_message_tcp(request_message)
-
-    def logout():
-        nonlocal client
-        logout_message = client.send_command("LOGOUT", "")
-        client.send_message_tcp(logout_message)
-        time.sleep(0.5)
-        client.close_connection()
-
-    main_menu1()
-    choice = input("Enter your choice: ").strip()
-
-    if choice == '1':
-        register()
-        login()
-    elif choice == '2':
-        login()
-    else:
-        print("Invalid choice.")
-        return
-
-    while True:
-        main_menu2()
-        choice2 = input("Enter your choice: ").strip()
-
-        if choice2 == '1':
-            one_on_one_chat()
-        elif choice2 == '2':
-            create_group()
-        elif choice2 == '3':
-            view_online_users()
-        elif choice2 == '4':
-            logout()
-            break
-        else:
-            print("Invalid choice. Please try again.")
-
-    print("Disconnected from server.")
-
-
-if __name__ == "__main__":
-    main()
-

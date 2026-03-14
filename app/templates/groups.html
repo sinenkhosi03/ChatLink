@@ -27,15 +27,14 @@
                 <h3>Groups</h3>
                 <div class="chat-container">
 
-                    {% for user in online_users %}
+                    {% for grp in available_grps %}
                         {% if user != current_user.id %}
                             <div class="chat" role="button"
-                                onclick="window.location.href='{{ url_for('main.chat', friend=user) }}'">
-
-                                <img src="{{ url_for('static', filename='images/user.png') }}" alt="">
+                                onclick="window.location.href='{{ url_for('main.chat', friend=grp) }}'">
+                                <img src="{{ url_for('static', filename='images/grps.png') }}" alt="">
 
                                 <div class="chat-details">
-                                    <h4 class="chat-name">{{ user }}</h4>
+                                    <h4 class="chat-name">{{ grp }}</h4>
                                 </div>
 
                             </div>

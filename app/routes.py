@@ -79,6 +79,9 @@ def logout():
 @login_required
 def create_group():
     client = clients.get(current_user.id)
+
+    available_grps = client.view_groups() or []
+
     if request.method == "POST":
         print("Method >>> Post")
         grp_name = request.form["gname"]
@@ -94,7 +97,7 @@ def create_group():
             return redirect(url_for("main.group_home"))
         else:
             flash("An error occured. Group was not created")
-    return render_template("group_form.html")
+    return render_template("group_form.html", available_grps = available_grps)
 
 @main.route("/home")
 @login_required
@@ -120,11 +123,11 @@ def group_home():
     if not client:
         return redirect(url_for("main.signin"))
 
-    online_users = client.view_groups() or []
+    available_grps = client.view_groups() or []
 
-    # print(online_users)
+    print(available_grps)
 
-    return render_template("groups.html", online_users=online_users)
+    return render_template("groups.html", available_grps=available_grps)
 
 
 @main.route("/chat/<friend>")
