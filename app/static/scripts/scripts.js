@@ -7,7 +7,11 @@ db.version(1).stores({
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     socket.on('new_message', (data) => {
-        receivedMsgDisplay(data.chat_name, data.message, data.sender);
+        const currentChat = window.location.pathname.split("/").pop();
+
+        if (data.chat_name === currentChat) {
+            receivedMsgDisplay(data.chat_name, data.message, data.sender);
+        }
     });
 
     socket.on('uploaded_files', (data) => {
