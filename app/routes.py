@@ -1,11 +1,13 @@
-from flask import Blueprint, render_template, url_for, redirect, request, flash
+from flask import Blueprint, render_template, url_for, redirect, request, flash, jsonify
 from app.client_registry import clients
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
 from app.client_interface import client_application
 from app import socketio
+import os
+import time
 
-
+UPLOAD_FOLDER = "app/static/uploads"
 main = Blueprint("main", __name__)
 
 @main.route("/")
@@ -62,9 +64,6 @@ def register():
 @main.route("/logout")
 @login_required
 def logout():
-
-    from app.client_registry import clients
-
     client = clients.pop(current_user.id, None)   # CHANGED
 
     if client:
@@ -79,6 +78,9 @@ def logout():
 @login_required
 def create_group():
     client = clients.get(current_user.id)
+
+    if not client:
+        return redirect(url_for("main.signin"))
 
     available_grps = client.view_groups() or []
 
@@ -138,11 +140,25 @@ def chat(friend):
     if not client:
         return redirect(url_for("main.signin"))
 
+    print("Came here, GOT lost")
     online_users = client.view_online_users()
     connection_status = client.one_on_one_chat_connection(friend)
     if not connection_status:
         return redirect(url_for("main.chat_home"))
     return render_template("chatScreen.html", online_users=online_users, friend=friend)
+
+
+@main.route("/gchat/<group>")
+@login_required
+def group_chat(group):
+    client = clients.get(current_user.id)   # CHANGED
+
+    if not client:
+        return redirect(url_for("main.signin"))
+    
+    available_grps = client.view_groups() or []
+
+    return render_template("groupChat.html", available_grps=available_grps, grp=group)
 
 
 @main.route("/send_message", methods=["POST"])
@@ -155,29 +171,34 @@ def send_message():
         return {"status": "error"}, 400
 
     data = request.json
-    friend = data.get("friend")
+    msg_type = data.get("person")
+    name = data.get("name")
     message = data.get("message")
     file_data = data.get("file")
 
     print(message)
-    if message != "":
-        sent_status = client.send_message_121(message, friend)
-    # if not sent_status:
-    #     print("Msg not sent")
-    #     return {"status":"failed"}
+    if message != "" and msg_type:
+        sent_status = client.send_message_121(message, name)
+    
+    if message != "" and (not msg_type):
+        client.send_message_group(message, name)
     
     if file_data:
-        client.send_file(file_data["url"], file_data["filename"], file_data["type"], file_data["size"], friend)
+        client.send_file(file_data["url"], file_data["filename"], file_data["type"], file_data["size"], name)
         print("sending file...")
 
     return {"status": "ok"}
 
+# @main.route("/send_gmessage", methods=["POST"])
+# @login_required
+# def send_gmessage():
 
-import os
-import time
-from flask import request, jsonify
+#     client = clients.get(current_user.id)
 
-UPLOAD_FOLDER = "app/static/uploads"
+#     if not client:
+#         return {"status": "error"}, 400
+
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 @main.route("/upload_file", methods=["POST"])
 @login_required

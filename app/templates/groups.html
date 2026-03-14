@@ -25,12 +25,12 @@
             </div>
             <div class="recent-chat">
                 <h3>Groups</h3>
-                <div class="chat-container">
+                <div class="chat-container grp">
 
                     {% for grp in available_grps %}
                         {% if user != current_user.id %}
                             <div class="chat" role="button"
-                                onclick="window.location.href='{{ url_for('main.chat', friend=grp) }}'">
+                                onclick="window.location.href='{{ url_for('main.group_chat', group=grp) }}'">
                                 <img src="{{ url_for('static', filename='images/grps.png') }}" alt="">
 
                                 <div class="chat-details">

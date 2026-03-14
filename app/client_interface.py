@@ -703,14 +703,14 @@ class client_application:
         
         return sent_ok
         
-    def send_message_group(self, message, group_name):
+    def send_message_group(self, gmessage, group_name):
         gmessage = self.send_data(
             "GTEXT_MESSAGE",
-            {"group-name": group_name, "message": message}
+            {"group-name": group_name, "message": gmessage}
         )
         self.send_message_tcp(gmessage)
 
-        if message == 'done':
+        if gmessage == 'done':
             return False
         return True
 

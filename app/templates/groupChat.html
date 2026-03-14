@@ -26,19 +26,17 @@
                 <h3>Messages</h3>
                 <div class="chat-container">
                     <!--Populate this part with online users-->    
-                    {% for user in online_users %}
-                        {% if user != current_user.id %}
+                    {% for grp in available_grps %}
                             <div class="chat" role="button"
-                                onclick="window.location.href='{{ url_for('main.chat', friend=user) }}'">
+                                onclick="window.location.href='{{ url_for('main.group_chat', group=grp) }}'">
 
-                                <img src="{{ url_for('static', filename='images/user.png') }}" alt="">
+                                <img src="{{ url_for('static', filename='images/grps.png') }}" alt="">
 
                                 <div class="chat-details">
-                                    <h4 class="chat-name">{{ user }}</h4>
+                                    <h4 class="chat-name">{{ grp }}</h4>
                                 </div>
 
                             </div>
-                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -46,11 +44,10 @@
 
         <div class="messages-displayer">
             <div class="chat-message-header">
-                <img src="{{ url_for('static', filename='images/user.png') }}">
+                <img src="{{ url_for('static', filename='images/grps.png') }}">
 
                 <div class="chat-header-details">
-                    <h4>{{ friend }}</h4>
-                    <p>online</p>
+                    <h4>{{ grp }}</h4>
                 </div>
 
                 <div class="chat-file-selectors">
@@ -65,30 +62,14 @@
                 </div>
             </div>
 
-            <div class="messages-container" data-friend="{{ friend }}">
-                <div class="recieve-message">
-                    <h5>{{ friend }}</h5>
-                    <p>
-                        WELCOME! Every message you send will appear here.
-                        Yes here🤩
-                    </p>
-                </div>
-
-                <div class="send-message">
-                    <div class="chat-box">
-                        <p>
-                            This is where a message you send will display😉
-                        </p>
-                    </div>
-                </div>
-
+            <div class="messages-container grp-msg-container" data-friend="{{ grp }}-{{current_user.id}}">
                 <div class="message-bar">
                     <textarea name="message" id="message-input" placeholder="Type your message..."></textarea>
                     <label for="message-send-btn">
                         <img src="{{ url_for('static', filename='images/send.png') }}">
                         <input type="button" value="send" id="message-send-btn" style="visibility: hidden;"
                             onclick="
-                            messageDisplay();
+                            gmessageDisplay();
                             "
                         >
                     </label>
