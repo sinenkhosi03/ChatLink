@@ -117,30 +117,42 @@ def send_message():
     data = request.json
     friend = data.get("friend")
     message = data.get("message")
-    file = data.get("file")
-
-    print(file)
-
-    if file:
-        file_status = client.send_file(file, friend)
-        if not file_status:
-            print("File not sent")
+    file_data = data.get("file")
+    
+    print(file_data["filename"])
 
     print(message)
-
-    # client.send_message(friend, message)   # your protocol call
-    sent_status = client.send_message_121(message, friend)
-
-    if not sent_status:
-        print("Msg not sent")
-        return {"status":"failed"}
-    # socketio.emit(
-    #     "new_message",
-    #     {
-    #         "chat_name": current_user.id,
-    #         "message": message
-    #     },
-    #     room=friend
-    # )
+    if message != "":
+        sent_status = client.send_message_121(message, friend)
+    # if not sent_status:
+    #     print("Msg not sent")
+    #     return {"status":"failed"}
+    
+    if file_data:
+        client.send_file(file_data["url"], file_data["type"], file_data["size"], friend)
+        print("sending file...")
 
     return {"status": "ok"}
+
+
+import os
+import time
+from flask import request, jsonify
+
+UPLOAD_FOLDER = "app/static/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+@main.route("/upload_file", methods=["POST"])
+@login_required
+def upload_file():
+    file = request.files["file"]
+
+    # create unique filename
+    filename = f"{int(time.time())}_{file.filename}"
+
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+    file.save(filepath)
+
+    return jsonify({
+        "url": f"app/static/uploads/{filename}"
+    })

@@ -12,7 +12,7 @@ from app import socketio
 
 class client_application:
     def __init__(self, ip_addr="0.0.0.0", peer_port=8000):
-        self.server_ip = "196.42.96.83"
+        self.server_ip = "172.30.32.1"
         self.server_port = 12000
         self.username = None
         self.ip_addr = ip_addr
@@ -37,7 +37,7 @@ class client_application:
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip="196.42.96.83", server_port=12000):
+    def tcp_connect(self, server_ip="172.30.32.1", server_port=12000):
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -239,7 +239,8 @@ class client_application:
             self.offline_data_rec(message_dict)
 
         elif command == "FILE_TRANSFER":
-            filename = body.get("fileName")
+            PATH = "app/static/uploads/received" #ADDED BY ME
+            filename = os.path.join(PATH, body.get("fileName")) #CHANGED BY ME
             filesize = body.get("fileSize")
             sender = header.get("senderId", "Unknown")
             print(f"\nReceiving file: {filename} ({filesize} bytes)")
@@ -495,10 +496,12 @@ class client_application:
             row = [new_row_dict.get(header, '') for header in headers]
             writer.writerow(row)
     
-    def send_file(self, file_details, target):
-        file_details = file_details
+    def send_file(self, filepath, type, size, target):
+        # filename = os.path.basename(filepath)
+        filename = os.path.join("../",filepath)
+        filesize = size
 
-        body = {"target": target, "fileName": file_details["name"], "fileType": file_details["type"], "fileSize": file_details["size"]}
+        body = {"target": target, "fileName": filename, "fileType": type, "fileSize": filesize}
         message = self.send_data("FILE_TRANSFER", body)
 
         with self.peer_lock:
@@ -506,21 +509,17 @@ class client_application:
 
         if receiver_socket is None:
             print("Peer disconnected.")
-            return False
+            return
         receiver_socket.sendall((json.dumps(message) + "\n").encode())
 
-        # with open(filepath, "rb") as file:
-        #     while True:
-        #         data = file.read(4096)
-        #         if not data:
-        #             return False
-        #         
-        if not data:
-            return False
-        
-        data = file_details.data
-        receiver_socket.sendall(data)
-        return True
+        with open(filepath, "rb") as file:
+            while True:
+                data = file.read(4096)
+                if not data:
+                    break
+                receiver_socket.sendall(data)
+
+        print("File sent successfully")
 
     def receive_file(self, sock, filename, filesize, sender):
         received_bytes = 0
@@ -533,16 +532,15 @@ class client_application:
 
                 file.write(chunk)
                 received_bytes += len(chunk)
+        socketio.emit(
+            "uploaded_files",
+            {
+                "chat_name": sender,
+                "url":filename
+            },
+            room=self.username
+        )
 
-            socketio.emit(
-                "file_transfer",
-                {
-                    "chat_name": sender,
-                    "filename": filename,
-                    "fileData": file
-                },
-                room=self.username
-            )
         print(f"Received file {filename}")
 
     def register(self, username, password):
