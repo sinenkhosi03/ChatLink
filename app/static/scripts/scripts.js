@@ -7,7 +7,7 @@ db.version(1).stores({
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     socket.on('new_message', (data) => {
-        receivedMsgDisplay(data.chat_name, data.message);
+        receivedMsgDisplay(data.chat_name, data.message, data.sender);
     });
 
     socket.on('uploaded_files', (data) => {
@@ -76,11 +76,15 @@ async function messageDisplay(){
         messageDisplayer.appendChild(msgCont);
     }
 
-    const name = messageDisplayer.dataset.friend;
+    let name = messageDisplayer.dataset.friend;
     
     let input = document.querySelector("#message-input");
     const message = input.value;
     const person = isPerson(name);
+
+    if(person === false)
+        name = name.split("-")[0];
+    
 
     if(message.trim() === ""){
         await fetch("/send_gmessage", {
@@ -141,14 +145,14 @@ function isPerson(FriendName){
 }
 
 //for receiving msg
-async function receivedMsgDisplay(chat_name, message){
+async function receivedMsgDisplay(chat_name, message, sender=null){
     let messageDisplayer = document.querySelector(".messages-container");
     const date_time = new Date().toISOString();
     
     let msgCont = document.createElement("div");
     msgCont.className = "recieve-message";
     msgCont.innerHTML = `
-                <h5>${chat_name}</h5>
+                 ${sender ? `<h5>${sender}</h5>` : ""}
                     <p>
                     ${message}
                     </p>
@@ -162,28 +166,10 @@ async function receivedMsgDisplay(chat_name, message){
     console.log(message);
 }
 
-async function openChat(chat_name) {
-    const messageDisplayer = document.querySelector(".messages-container");
-    messageDisplayer.dataset.friend = friendName;
-    const messages = await loadChat(chat_name);
-    messageDisplayer.innerHTML = ""; // clear current display
-
-    messages.forEach(msg => {
-        let msgCont = document.createElement("div");
-        msgCont.className = msg.sender === "me" ? "sent-message" : "received-message";
-        msgCont.innerHTML = `
-            <div class="chat-box">
-                ${msg.sender === "them" ? `<h5>${chat_name}</h5>` : ""}
-                <p>${msg.message}</p>
-                <small>${msg.date_time}</small>
-            </div>
-        `;
-        messageDisplayer.appendChild(msgCont);
-    });
+function buildMsg(sender, message, date_time){
+    return { sender, message, date_time };
 }
 
-
-//save msg
 async function saveMessage(friendName, newMsg){
     const record = await db.chat_history.get(friendName) || {friend:friendName, messages: []};
 
@@ -191,21 +177,31 @@ async function saveMessage(friendName, newMsg){
     await db.chat_history.put(record);
 }
 
-// load chat
 async function loadChat(friendName){
     const record = await db.chat_history.get(friendName);
     return record?.messages || [];
 }
 
-function buildMsg(sender, message, date_time){
-    return { sender, message, date_time };
-}
+// async function openChat(chat_name) {
+//     const messageDisplayer = document.querySelector(".messages-container");
+//     messageDisplayer.dataset.friend = friendName;
+//     const messages = await loadChat(chat_name);
+//     messageDisplayer.innerHTML = ""; // clear current display
 
-const urlParams = new URLSearchParams(window.location.search);
-const chat_name = urlParams.get('friend'); 
+//     messages.forEach(msg => {
+//         let msgCont = document.createElement("div");
+//         msgCont.className = msg.sender === "me" ? "sent-message" : "received-message";
+//         msgCont.innerHTML = `
+//             <div class="chat-box">
+//                 ${msg.sender === "them" ? `<h5>${chat_name}</h5>` : ""}
+//                 <p>${msg.message}</p>
+//                 <small>${msg.date_time}</small>
+//             </div>
+//         `;
+//         messageDisplayer.appendChild(msgCont);
+//     });
+// }
 
-if (chat_name) { 
-    document.querySelector('.messages-container').dataset.friend = chat_name;
-    console.log(chat_name);
-    openChat(chat_name);
-}
+
+// const urlParams = new URLSearchParams(window.location.search);
+// const chat_name = urlParams.get('friend'); 

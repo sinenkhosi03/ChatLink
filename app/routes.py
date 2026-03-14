@@ -127,7 +127,7 @@ def group_home():
 
     available_grps = client.view_groups() or []
 
-    print(available_grps)
+    #print(available_grps)
 
     return render_template("groups.html", available_grps=available_grps)
 
@@ -175,13 +175,13 @@ def send_message():
     message = data.get("message")
     file_data = data.get("file")
 
-    print(message)
-    if message != "" and msg_type:
-        print("Sending message...")
+    #print(message)
+    if message != "" and msg_type=="true":
+        #print("Sending message...")
         sent_status = client.send_message_121(message, name)
     
-    if message != "" and (not msg_type):
-        print("Sending gmessage...")
+    if message != "" and msg_type=="false":
+        #print("Sending gmessage...")
         client.send_message_group(message, name)
     
     if file_data:

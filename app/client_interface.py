@@ -12,7 +12,7 @@ from app import socketio
 
 class client_application:
     def __init__(self, ip_addr="0.0.0.0", peer_port=8000):
-        self.server_ip = "172.30.32.1"
+        self.server_ip = "196.24.134.50"
         self.server_port = 12000
         self.username = None
         self.ip_addr = ip_addr
@@ -37,7 +37,7 @@ class client_application:
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip="172.30.32.1", server_port=12000):
+    def tcp_connect(self, server_ip="196.24.134.50", server_port=12000):
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -200,7 +200,7 @@ class client_application:
             return
 
         message_dict = self._try_unpack_nested_control(message_dict)
-
+        print(message_dict)
         header = message_dict.get("header", {})
         body = message_dict.get("body", {})
         command = header.get("command")
@@ -252,10 +252,22 @@ class client_application:
                 self.receive_file(sock, filename, filesize, sender)
 
         elif command == "GTEXT_MESSAGE":
+            print("I was here")
             display_message = body.get("message", "")
             group_name = body.get("group-name", "GROUP")
+            sender = header.get('senderId', 'Unknown')
             print(f"{group_name}-{header.get('senderId', 'Unknown')}: {display_message}")
-        
+
+            socketio.emit(
+                "new_message",
+                {
+                    "chat_name": group_name,
+                    "sender": sender,
+                    "message": display_message
+                },
+                room=self.username
+            )
+
         elif command == "GFILE_TRANSFER":
             filename = body.get("fileName")
             filesize = body.get("fileSize")
@@ -329,15 +341,16 @@ class client_application:
                 buffer += msg
 
                 while '\n' in buffer:
-                    message, buffer = buffer.split('\n', 1)
+                    msg, buffer = buffer.split('\n', 1)
 
-                    if not message.strip():
+                    if not msg.strip():
                         continue
 
                     if self.waiting_for_response:
-                        self.message_queue.put(message)
+                        self.message_queue.put(msg)
                     else:
-                        self.receive_message(message)
+                        print(msg)
+                        self.receive_message(msg)
 
             except Exception:
                 print("Server disconnected.2")
@@ -704,10 +717,12 @@ class client_application:
         return sent_ok
         
     def send_message_group(self, gmessage, group_name):
+        #print("Got here")
         gmessage = self.send_data(
             "GTEXT_MESSAGE",
             {"group-name": group_name, "message": gmessage}
         )
+        print("sending msg:", gmessage)
         self.send_message_tcp(gmessage)
 
         if gmessage == 'done':
