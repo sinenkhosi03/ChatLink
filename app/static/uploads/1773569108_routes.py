@@ -191,7 +191,6 @@ def send_message():
         client.send_message_group(message, name)
     
     if file_data:
-        print("sending file...")
         client.send_file(file_data["url"], file_data["filename"], file_data["type"], file_data["size"], name)
         print("sending file...")
 

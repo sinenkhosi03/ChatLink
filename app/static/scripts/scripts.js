@@ -76,7 +76,14 @@ async function messageDisplay(){
             size: file.size,
             url: data.url
         }
-        msgCont.innerHTML = fileMsgBuild(file);
+        msgCont.innerHTML =`
+        <div class="chat-box">
+            <p>
+                <img src="/static/images/file.png">
+                ${file.name}
+            </p>
+        </div>
+    `;
         messageDisplayer.appendChild(msgCont);
     }
 
@@ -97,7 +104,7 @@ async function messageDisplay(){
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                msgType: `${msg_type}`,
+                msgType: `${person}`,
                 name: `${name}`,
                 message: `${message}`,
                 file: sent_file

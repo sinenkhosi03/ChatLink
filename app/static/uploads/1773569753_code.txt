@@ -1,0 +1,459 @@
+package main;
+
+import java.util.ArrayList;
+import java.nio.file.StandardOpenOption;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+
+import utils.Task;
+import utils.Utilities;
+
+public class TaskTracker{
+    public static ArrayList<Task> TO_DO = new ArrayList<>();
+    public static ArrayList<Task> IN_PROGRESS = new ArrayList<>();
+    public static ArrayList<Task> DONE = new ArrayList<>();
+    public static ArrayList<Integer> EXISTING_IDs = new ArrayList<>();
+
+    public static Path TASK_FILE_PATH = Path.of("tasks.json");
+
+    public static void loadFile(){
+        try(BufferedReader​ reader = Files.newBufferedReader(TASK_FILE_PATH)){
+            String line; String taskCategory; String[] token; String[] tasksToLoad;
+            
+            reader.skip(1);
+            while( (line = reader.readLine()) != null ){
+                
+                token = line.split("\\[");
+                if (token.length > 1){
+                    taskCategory = token[0].split(":")[0].trim().replaceAll("\"", "");
+                    tasksToLoad = token[1].replaceAll("\\]", "").trim().split("\\},\\s*\\{");
+
+                    for (int i=0; i<tasksToLoad.length;i++){
+                        tasksToLoad[i] = tasksToLoad[i].replaceAll("[{}]", "");
+                    }
+                    
+                    switch (taskCategory){
+                        case "todo" -> { loadFileInTODO(tasksToLoad);}
+                        case "in-progress" -> { loadFileToINPROGRESS(tasksToLoad); }
+                        case "done" -> { loadFileTODONE(tasksToLoad); }
+                    }
+                }
+            }
+
+            Files.writeString(
+                TASK_FILE_PATH, "", StandardOpenOption.WRITE, StandardOpenOption.DELETE_ON_CLOSE);
+
+        } catch(IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void loadFileInTODO(String[] tasks){
+        Task myTask = null;
+
+        for (String task : tasks){
+            myTask = new Task();
+            setValue(task, myTask);
+            TO_DO.add(myTask);
+        }
+
+    }
+
+    private static void loadFileToINPROGRESS(String[] tasks){
+        Task myTask = null;
+
+        for (String task : tasks){
+            myTask = new Task();
+            setValue(task, myTask);
+            IN_PROGRESS.add(myTask);
+        }
+    }
+
+    private static void loadFileTODONE(String[] tasks){
+        Task myTask = null;
+
+        for (String task : tasks){
+            myTask = new Task();
+            setValue(task, myTask);
+            DONE.add(myTask);
+        }
+    }
+
+    private static void setValue(String task, Task myTask){
+        String[] taskAttributes; String[] taskTokens;
+        
+        taskAttributes = task.split(",");
+        for (String t : taskAttributes){
+            taskTokens = t.replaceAll("\"", "").split(":");
+            if (taskTokens[0].trim().equals("id")){
+                EXISTING_IDs.add(Integer.valueOf(taskTokens[1].trim()));
+                myTask.setID(Integer.parseInt(taskTokens[1].trim()));
+            }
+            else if(taskTokens[0].trim().equals("description")){
+                myTask.setDescription(taskTokens[1].trim());
+            }
+            else if (taskTokens[0].trim().equals("createdAt")){
+                myTask.setCreateTime((taskTokens[1].trim()+":"+taskTokens[2]+":"+taskTokens[3]));
+            }
+            else if (taskTokens[0].trim().equals("updatedAt")){
+                myTask.setUpdateTime((taskTokens[1].trim()+":"+taskTokens[2]+":"+taskTokens[3]));
+            }
+            else if (taskTokens[0].trim().equals("status")){
+                myTask.setStatus(taskTokens[1].trim());
+            }
+        }
+    }
+
+    public static void main(String[] args){
+        // Creates the file if it doesnt exits
+        try{
+            Files.writeString(TASK_FILE_PATH, "", StandardOpenOption.CREATE);
+
+            TaskTracker.loadFile();
+
+        }catch(IOException e){
+            System.out.println("Problem loading file... "+e.getMessage());
+        }
+
+
+        // handling user input
+        String action = args[0];
+        if (action != null){
+            switch (action){
+                case "add" -> {Utilities.addTask(args[1].replaceAll("\"", ""), TO_DO, EXISTING_IDs);}
+                case "update" -> {Utilities.updateTask(Integer.parseInt(args[1]), args[2].replaceAll("\"", ""), TO_DO, IN_PROGRESS, DONE);}
+                case "delete" -> {Utilities.deleteTask(Integer.parseInt(args[1]), TO_DO, IN_PROGRESS, DONE);}
+                case "mark-in-progress" -> {Utilities.markInProgress(Integer.parseInt(args[1]), TO_DO, IN_PROGRESS, DONE);}
+                case "mark-done" -> {Utilities.markAsDone(Integer.parseInt(args[1]), TO_DO, IN_PROGRESS, DONE);}
+                case "list" -> {
+                    if (args.length < 2)
+                        Utilities.listAll(TO_DO, IN_PROGRESS, DONE);
+                    else{
+                        switch(args[1]){
+                            case "todo" -> {Utilities.listTodo(TO_DO);}
+                            case "in-progress" -> {Utilities.listInProgress(IN_PROGRESS);}
+                            case "done" -> {Utilities.listDone(DONE);}
+                        }
+                    }
+                }
+            }
+        }
+
+        // Save task to json file
+        TaskTracker.saveToFile();
+    }
+
+    public static void saveToFile(){
+        try{
+            Files.writeString(TASK_FILE_PATH, "{\n", StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+
+            // save task with todo status
+            if(!TO_DO.isEmpty()) {
+                saveTodoTasks();
+                Files.writeString(TASK_FILE_PATH, ",\n", StandardOpenOption.APPEND);
+            }
+
+            // save tasks with in-progress status
+            if(!IN_PROGRESS.isEmpty()){
+                saveInProgressTasks();
+                Files.writeString(TASK_FILE_PATH, ",\n", StandardOpenOption.APPEND);
+            }
+
+            // save tasks with done status
+            if(!DONE.isEmpty()){
+                saveDoneTasks();
+            }
+
+            Files.writeString(TASK_FILE_PATH, "\n}", StandardOpenOption.APPEND);
+        }catch(IOException e){
+            System.out.println("Issue writing to file... "+e.getMessage());
+        }
+        
+    }
+
+    private static void saveTodoTasks(){
+        try{
+            Files.writeString(
+                TASK_FILE_PATH,
+                "\"todo\" : [",
+                StandardOpenOption.APPEND
+            );
+        }catch(IOException e){
+            System.out.println("Issue writing to file... "+e.getMessage());
+        }
+
+        try(BufferedWriter writer = Files.newBufferedWriter(TASK_FILE_PATH, StandardOpenOption.APPEND)){
+            for (int i=0; i < TO_DO.size(); i++){
+                if (i==TO_DO.size()-1) {writer.write(TO_DO.get(i).toString()+"]");}
+                else{
+                    writer.write(TO_DO.get(i).toString()+", ");
+                }
+            }
+        }catch(IOException e){
+            System.out.println("Issue writing to file... "+e.getMessage());
+        }
+    }
+
+    private static void saveDoneTasks(){
+        try{
+            Files.writeString(
+                TASK_FILE_PATH,
+                "\"done\" : [",
+                StandardOpenOption.APPEND
+            );
+        }catch(IOException e){
+            System.out.println("Issue writing to file... "+e.getMessage());
+        }
+
+        try(BufferedWriter writer = Files.newBufferedWriter(TASK_FILE_PATH, StandardOpenOption.APPEND)){
+            for (int i=0; i < DONE.size(); i++){
+                if (i==DONE.size()-1) {writer.write(DONE.get(i).toString()+"]");}
+                else{
+                    writer.write(DONE.get(i).toString()+", ");
+                }
+            }
+        }catch(IOException e){
+            System.out.println("Issue writing to file... "+e.getMessage());
+        }
+    }
+
+    private static void saveInProgressTasks(){
+        try{
+            Files.writeString(
+                TASK_FILE_PATH,
+                "\"in-progress\" : [",
+                StandardOpenOption.APPEND
+            );
+        }catch(IOException e){
+            System.out.println("Issue writing to file... "+e.getMessage());
+        }
+
+        try(BufferedWriter writer = Files.newBufferedWriter(TASK_FILE_PATH, StandardOpenOption.APPEND)){
+            for (int i=0; i < IN_PROGRESS.size(); i++){
+                if (i==IN_PROGRESS.size()-1) {writer.write(IN_PROGRESS.get(i).toString()+"]");}
+                else{
+                    writer.write(IN_PROGRESS.get(i).toString()+", ");
+                }
+            }
+        }catch(IOException e){
+            System.out.println("Issue writing to file... "+e.getMessage());
+        }
+    }    
+}
+
+CLASSES IN UTILS PACKAGE
+1. TASK.JAVA
+
+package utils;
+import java.time.LocalDateTime;
+
+public class Task{
+    private int id;
+    private String description;
+    private String status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    public Task(){
+        this.id = 0;
+        this.description = null;
+        this.createdAt = null;
+        this.updatedAt = null;
+    }
+
+    public Task(int id, String description, String status, LocalDateTime createdAt, LocalDateTime updatedAt){
+        this.id = id;
+        this.description = description;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public int getID(){ return this.id; }
+
+    public String getDescription(){ return this.description; }
+
+    public String getStatus(){ return this.status; }
+
+    public LocalDateTime getCreateTime(){ return this.createdAt; }
+
+    public LocalDateTime getUpdateTime(){ return this.updatedAt; }
+
+    public void setID(int id){ this.id = id; }
+
+    public void setCreateTime(String time){ this.createdAt = LocalDateTime.parse(time); }
+
+    public void setUpdateTime(String time){ this.updatedAt = LocalDateTime.parse(time); }
+
+    public void setDescription(String description){ this.description = description; }
+
+    public void setStatus(String status){ this.status = status;}
+
+    public void updateDescription(String newDescription){ 
+        this.description = newDescription; 
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public String toString(){
+        return "{\"id\" : "+this.id+", \"description\" : \""+this.description+"\", \"status\" : \""+this.status+"\", \"createdAt\" : \""+this.createdAt+"\", \"updatedAt\" : \""+this.updatedAt+"\"}";
+    }
+}
+
+2. Utilities.java
+package utils;
+import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.util.Random;
+
+public class Utilities{
+    static int RAND_SEED = 42;
+
+    public static void addTask(String description, ArrayList<Task> TO_DO, ArrayList<Integer> EXISTING_IDs){
+        Random rand = new Random(); int id = -1; boolean exist = true;
+        
+        while (id < 0 || exist){
+            id = rand.nextInt();
+            exist = exists(Integer.valueOf(id), EXISTING_IDs);
+        }
+        EXISTING_IDs.add(Integer.valueOf(id));
+        Task newTask = new Task(id, description, "todo", LocalDateTime.now(), LocalDateTime.now());
+        TO_DO.add(newTask);
+        System.out.println("Task added successfully (ID: "+newTask.getID()+")");
+
+    }
+
+    private static boolean exists(Integer id, ArrayList<Integer> EXISTING_IDs){
+        for (Integer i : EXISTING_IDs){
+            if (i.equals(id)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void updateTask (int id, String description, ArrayList<Task> TO_DO, ArrayList<Task> IN_PROGRESS, ArrayList<Task> DONE){
+        Task taskToUpdate = findTask(id, TO_DO, IN_PROGRESS, DONE);
+        if (taskToUpdate != null){
+            taskToUpdate.updateDescription(description);
+            System.out.println("task updated successfully at: "+taskToUpdate.getUpdateTime());
+        }
+        else{
+            System.out.println("Task does not exist");
+        }
+    }
+    private static Task findTask(int id, ArrayList<Task> TO_DO, ArrayList<Task> IN_PROGRESS, ArrayList<Task> DONE){
+        for (Task t : TO_DO){
+            if (t.getID()==id){return t;}
+        }
+
+        for (Task t : IN_PROGRESS){
+            if (t.getID()==id){return t;}
+        }
+
+        for (Task t : DONE){
+            if (t.getID()==id){return t;}
+        }
+
+        return null;
+    }
+    public static void deleteTask(int id, ArrayList<Task> TO_DO, ArrayList<Task> IN_PROGRESS, ArrayList<Task> DONE){
+        Task taskToDelete = findTask(id, TO_DO, IN_PROGRESS, DONE);
+        if (taskToDelete != null){
+            String status = taskToDelete.getStatus();
+
+            switch(status){
+                case "todo" -> {TO_DO.remove(taskToDelete);}
+                case "in-progress" -> {IN_PROGRESS.remove(taskToDelete);}
+                case "done" -> {DONE.remove(taskToDelete);}
+            }
+            System.out.printf("Task (ID: %d) has been deleted.\n", taskToDelete.getID());
+        }
+    }
+    public static void markInProgress(int id, ArrayList<Task> TO_DO, ArrayList<Task> IN_PROGRESS, ArrayList<Task> DONE){
+        Task taskToMark = findTask(id, TO_DO, IN_PROGRESS, DONE);
+        if (taskToMark != null){
+            String status = taskToMark.getStatus();
+
+            switch(status){
+                case "todo" -> {
+                    taskToMark.setStatus("in-progress");
+                    IN_PROGRESS.add(taskToMark);
+                    TO_DO.remove(taskToMark);
+                    System.out.printf("Task (ID: %d) moved to in-progress status\n", taskToMark.getID());
+                }
+                case "done" -> {
+                    taskToMark.setStatus("in-progress");
+                    IN_PROGRESS.add(taskToMark);
+                    DONE.remove(taskToMark);
+                    System.out.printf("Task (ID: %d) moved to in-progress status\n", taskToMark.getID());
+                }
+            }
+        }
+    }
+    public static void markAsDone(int id, ArrayList<Task> TO_DO, ArrayList<Task> IN_PROGRESS, ArrayList<Task> DONE){
+        Task taskToMark = findTask(id, TO_DO, IN_PROGRESS, DONE);
+        if (taskToMark != null){
+            String status = taskToMark.getStatus();
+
+            switch(status){
+                case "todo" -> {
+                    taskToMark.setStatus("done");
+                    DONE.add(taskToMark);
+                    TO_DO.remove(taskToMark);
+                    System.out.printf("Task (ID: %d) moved to done status\n", taskToMark.getID());
+                }
+                case "in-progress" -> {
+                    taskToMark.setStatus("done");
+                    DONE.add(taskToMark);
+                    IN_PROGRESS.remove(taskToMark);
+                    System.out.printf("Task (ID: %d) moved to done status\n", taskToMark.getID());
+                }
+            }
+        }
+    }
+
+    public static void listAll(ArrayList<Task> TO_DO, ArrayList<Task> IN_PROGRESS, ArrayList<Task> DONE){
+        System.out.println("<---ALL TASKS--->");
+        System.out.println("ID  :   Description :   Status  :   CreatedAt   :   UpdatedAt");
+
+        for (Task t : TO_DO){
+            System.out.printf("%d   :   %s  :   %s  :   %s  :   %s\n", t.getID(), t.getDescription(), t.getStatus(), t.getCreateTime().toString(), t.getUpdateTime().toString());
+        }
+        for (Task t : IN_PROGRESS){
+            System.out.printf("%d   :   %s  :   %s  :   %s  :   %s\n", t.getID(), t.getDescription(), t.getStatus(), t.getCreateTime().toString(), t.getUpdateTime().toString());
+        }
+
+        for (Task t : DONE){
+            System.out.printf("%d   :   %s  :   %s  :   %s  :   %s\n", t.getID(), t.getDescription(), t.getStatus(), t.getCreateTime().toString(), t.getUpdateTime().toString());
+        }
+    }
+    public static void listDone(ArrayList<Task> DONE){
+        System.out.println("<---TASK COMPLETED--->");
+        System.out.println("ID  :   Description :   Status  :   CreatedAt   :   UpdatedAt");
+
+        for (Task t : DONE){
+            System.out.printf("%d   :   %s  :   %s  :   %s  :   %s\n", t.getID(), t.getDescription(), t.getStatus(), t.getCreateTime().toString(), t.getUpdateTime().toString());
+        }
+    }
+    public static void listTodo(ArrayList<Task> TO_DO){
+        System.out.println("<---TASK TO DO--->");
+        System.out.println("ID  :   Description :   Status  :   CreatedAt   :   UpdatedAt");
+
+        for (Task t : TO_DO){
+            System.out.printf("%d   :   %s  :   %s  :   %s  :   %s\n", t.getID(), t.getDescription(), t.getStatus(), t.getCreateTime().toString(), t.getUpdateTime().toString());
+        }
+    }
+    public static void listInProgress(ArrayList<Task> IN_PROGRESS){
+        System.out.println("<---TASK TO DO--->");
+        System.out.println("ID  :   Description :   Status  :   CreatedAt   :   UpdatedAt");
+
+        for (Task t : IN_PROGRESS){
+            System.out.printf("%d   :   %s  :   %s  :   %s  :   %s\n", t.getID(), t.getDescription(), t.getStatus(), t.getCreateTime().toString(), t.getUpdateTime().toString());
+        }
+    }
+}

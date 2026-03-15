@@ -240,8 +240,10 @@ class client_application:
 
         elif command == "FILE_TRANSFER":
             PATH = "app/static/uploads/received" #ADDED BY ME
+            os.makedirs(PATH, exist_ok=True)
             name = os.path.basename(body.get("fileName"))
             filename = os.path.normpath(os.path.join(PATH, name)) #CHANGED BY ME
+
             filesize = body.get("fileSize")
             sender = header.get("senderId", "Unknown")
             print(f"\nReceiving file: {filename} ({filesize} bytes)")
@@ -349,7 +351,7 @@ class client_application:
                     if self.waiting_for_response:
                         self.message_queue.put(msg)
                     else:
-                        print("Peer from thread",msg)
+                        #print("Peer from thread",msg)
                         self.receive_message(msg)
 
             except Exception:
@@ -518,14 +520,16 @@ class client_application:
 
         body = {"target": target, "fileName": filename, "fileType": type, "fileSize": size}
         message = self.send_data("FILE_TRANSFER", body)
-
+        print(message)
         with self.peer_lock:
             receiver_socket = self.peer_socket
 
         if receiver_socket is None:
             print("Peer disconnected.")
             return
+        
         receiver_socket.sendall((json.dumps(message) + "\n").encode())
+
 
         with open(filepath, "rb") as file:
             while True:
@@ -534,11 +538,13 @@ class client_application:
                     break
                 receiver_socket.sendall(data)
 
+
         print("File sent successfully")
 
     def receive_file(self, sock, filename, filesize, sender):
         received_bytes = 0
         fname = os.path.basename(filename)
+        print("Received file: ", fname)
         with open(f"{filename}", "wb") as file:
             while received_bytes < filesize:
                 chunk = sock.recv(min(4096, filesize - received_bytes))
@@ -548,6 +554,7 @@ class client_application:
 
                 file.write(chunk)
                 received_bytes += len(chunk)
+        print("File reconstruction completed:", filename)
         socketio.emit(
             "uploaded_files",
             {
