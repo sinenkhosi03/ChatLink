@@ -8,7 +8,10 @@ import os
 import time
 
 UPLOAD_FOLDER = "app/static/uploads"
+# PORT_TRACKER = 8001
 main = Blueprint("main", __name__)
+
+
 
 @main.route("/")
 def index():
@@ -16,6 +19,8 @@ def index():
 
 @main.route("/signIn", methods=["GET","POST"])
 def signin():
+    global PORT_TRACKER
+
     if request.method=="POST":
         name = request.form.get("username")
         pw = request.form.get("password")
@@ -141,9 +146,10 @@ def chat(friend):
         return redirect(url_for("main.signin"))
 
     online_users = client.view_online_users()
+
     connection_status = client.one_on_one_chat_connection(friend)
-    if not connection_status:
-        return redirect(url_for("main.chat_home"))
+    # if not connection_status:
+    #     return redirect(url_for("main.chat_home"))
     return render_template("chatScreen.html", online_users=online_users, friend=friend)
 
 

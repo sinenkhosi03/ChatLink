@@ -12,7 +12,7 @@ from app import socketio
 
 class client_application:
     def __init__(self, ip_addr="0.0.0.0", peer_port=8000):
-        self.server_ip = "196.24.134.50"
+        self.server_ip = "196.47.245.85"
         self.server_port = 12000
         self.username = None
         self.ip_addr = ip_addr
@@ -37,7 +37,7 @@ class client_application:
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip="196.24.134.50", server_port=12000):
+    def tcp_connect(self, server_ip="196.47.245.85", server_port=12000):
         self.server_ip = server_ip
         self.server_port = server_port
 
@@ -214,7 +214,8 @@ class client_application:
 
         elif command == "LISTEN":
             if not self.listener_started:
-                threading.Thread(target=self.start_peer_listener, daemon=True).start()
+                t = threading.Thread(target=self.start_peer_listener, daemon=True)
+                t.start()
                 time.sleep(0.5)
 
         elif command == "PING":
@@ -225,7 +226,7 @@ class client_application:
             display_message = body.get("message", "")
             sender = header.get("senderId", "Unknown") #added
             print(f"\n{header.get('senderId', 'Unknown')}: {display_message}")
-
+            print("Recieving msg:", display_message)
             socketio.emit(
                 "new_message",
                 {
@@ -236,7 +237,6 @@ class client_application:
             )
             self.offline_data_rec(message_dict)
 
-            self.offline_data_rec(message_dict)
 
         elif command == "FILE_TRANSFER":
             PATH = "app/static/uploads/received" #ADDED BY ME
@@ -279,7 +279,7 @@ class client_application:
                 self.receive_file(sock, filename, filesize)
 
         elif command == "VIEW_ONLINE":
-            online_users = body.get("online_users", [])
+            online_users = body.get("users", [])
             print("Online users:", online_users)
 
         elif command == "VIEW_GROUP":
@@ -349,7 +349,7 @@ class client_application:
                     if self.waiting_for_response:
                         self.message_queue.put(msg)
                     else:
-                        print(msg)
+                        print("Peer from thread",msg)
                         self.receive_message(msg)
 
             except Exception:
@@ -753,19 +753,19 @@ class client_application:
 
     def view_online_users(self):
 
-        import json
-
-        self.waiting_for_response = True
-
         message = self.send_command("VIEW_ONLINE", {})
         self.send_message_tcp(message)
+        self.waiting_for_response = True
 
         try:
             response = self.message_queue.get(timeout=5)
 
             response = json.loads(response)  
+
+            print("View online response: ", response)
             body = response.get("body",{})
             self.online_users = body.get("users", [])
+            print("users: ", self.online_users)
         except queue.Empty:
             print("Server timeout")
             self.waiting_for_response = False
