@@ -92,19 +92,19 @@ async function messageDisplay(){
     let input = document.querySelector("#message-input");
     const message = input.value;
     const person = isPerson(name);
-
+    console.log(person)
     if(person === false)
         name = name.split("-")[0];
     
 
     if(message.trim() === ""){
-        await fetch("/send_gmessage", {
+        await fetch("/send_message", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                msgType: `${person}`,
+                person: `${person}`,
                 name: `${name}`,
                 message: `${message}`,
                 file: sent_file

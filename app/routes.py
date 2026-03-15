@@ -181,19 +181,21 @@ def send_message():
     message = data.get("message")
     file_data = data.get("file")
 
+    print(file_data, msg_type)
     #print(message)
     if message != "" and msg_type=="true":
         #print("Sending message...")
         sent_status = client.send_message_121(message, name)
+
+    print(file_data and msg_type=="true")
+
+    if file_data and msg_type=="true":
+        print("sending file...")
+        client.send_file(file_data["url"], file_data["filename"], file_data["type"], file_data["size"], name)
     
     if message != "" and msg_type=="false":
         #print("Sending gmessage...")
         client.send_message_group(message, name)
-    
-    if file_data:
-        print("sending file...")
-        client.send_file(file_data["url"], file_data["filename"], file_data["type"], file_data["size"], name)
-        print("sending file...")
 
     return {"status": "ok"}
 

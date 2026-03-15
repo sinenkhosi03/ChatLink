@@ -251,6 +251,7 @@ class client_application:
             with self.peer_lock:
                 sock = self.peer_socket
             if sock:
+                print(f"Sending to {sender} of the file: {filename}")
                 self.receive_file(sock, filename, filesize, sender)
 
         elif command == "GTEXT_MESSAGE":
@@ -309,7 +310,6 @@ class client_application:
         while True:
             try:
                 with self.peer_lock:
-                    print("I'm in")
                     current_peer_socket = self.peer_socket
 
                 if current_peer_socket is None:
