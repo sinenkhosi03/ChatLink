@@ -8,11 +8,14 @@ import threading
 import queue
 import csv
 from app import socketio
+from dotenv import load_dotenv
 
 
 class client_application:
     def __init__(self, ip_addr="0.0.0.0", peer_port=8000):
-        self.server_ip = "196.47.245.85"
+        load_dotenv()
+
+        self.server_ip = os.getenv("SERVER_IP")
         self.server_port = 12000
         self.username = None
         self.ip_addr = ip_addr
@@ -37,8 +40,9 @@ class client_application:
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip="196.47.245.85", server_port=12000):
-        self.server_ip = server_ip
+    def tcp_connect(self, server_ip=None, server_port=12000):
+        if server_ip is None:
+            self.server_ip = server_ip
         self.server_port = server_port
 
         client_socket = socket(AF_INET, SOCK_STREAM)
@@ -200,13 +204,11 @@ class client_application:
             return
 
         message_dict = self._try_unpack_nested_control(message_dict)
-        print(message_dict)
         header = message_dict.get("header", {})
         body = message_dict.get("body", {})
         command = header.get("command")
 
         if command == "ACK":
-            #print("Continue with the next step")
             pass
 
         elif command == "ERROR":
@@ -224,9 +226,8 @@ class client_application:
 
         elif command == "SEND_TEXT":
             display_message = body.get("message", "")
-            sender = header.get("senderId", "Unknown") #added
+            sender = header.get("senderId", "Unknown")
             print(f"\n{header.get('senderId', 'Unknown')}: {display_message}")
-            print("Recieving msg:", display_message)
             socketio.emit(
                 "new_message",
                 {
@@ -239,10 +240,10 @@ class client_application:
 
 
         elif command == "FILE_TRANSFER":
-            PATH = "app/static/uploads/received" #ADDED BY ME
+            PATH = "app/static/uploads/received"
             os.makedirs(PATH, exist_ok=True)
             name = os.path.basename(body.get("fileName"))
-            filename = os.path.normpath(os.path.join(PATH, name)) #CHANGED BY ME
+            filename = os.path.normpath(os.path.join(PATH, name))
 
             filesize = body.get("fileSize")
             sender = header.get("senderId", "Unknown")
@@ -251,11 +252,9 @@ class client_application:
             with self.peer_lock:
                 sock = self.peer_socket
             if sock:
-                print(f"Sending to {sender} of the file: {filename}")
                 self.receive_file(sock, filename, filesize, sender)
 
         elif command == "GTEXT_MESSAGE":
-            print("I was here")
             display_message = body.get("message", "")
             group_name = body.get("group-name", "GROUP")
             sender = header.get('senderId', 'Unknown')
@@ -301,7 +300,6 @@ class client_application:
             self.peer_connected_event.clear()
 
         else:
-            #print("Received:", message_dict)
             pass
 
     def peer_receive_thread(self):
@@ -313,7 +311,6 @@ class client_application:
                     current_peer_socket = self.peer_socket
 
                 if current_peer_socket is None:
-                    print("I'm checking conncection to peer")
                     break
 
                 msg = current_peer_socket.recv(2048).decode()
@@ -351,7 +348,6 @@ class client_application:
                     if self.waiting_for_response:
                         self.message_queue.put(msg)
                     else:
-                        #print("Peer from thread",msg)
                         self.receive_message(msg)
 
             except Exception:
@@ -391,7 +387,6 @@ class client_application:
             body = message_dict.get("body", {})
             command = header.get("command")
 
-            # If peer connected while we were parsing, use that
             if self.peer_connected_event.is_set():
                 self.waiting_for_response = False
                 return True
@@ -402,15 +397,12 @@ class client_application:
                 if isinstance(addr, list) and len(addr) >= 1:
                     client_ip = addr[0]
 
-                    # IMPORTANT:
-                    # server returns wrong peer port, so ignore it
                     if client_ip is not None:
                         success = self.tcp_connect_peer(client_ip, self.peer_port)
                         self.waiting_for_response = False
                         return success
 
             elif command == "ERROR":
-                # Even if server complains, maybe the peer already connected in the meantime
                 if self.peer_connected_event.is_set():
                     self.waiting_for_response = False
                     return True
@@ -418,17 +410,14 @@ class client_application:
                 print("Server returned an error:", body)
 
             else:
-                # Process any other message normally
                 self.receive_message(message)
 
-            # If peer connected after processing, still accept success
             if self.peer_connected_event.is_set():
                 self.waiting_for_response = False
                 return True
 
         self.waiting_for_response = False
 
-        # Final rescue: maybe peer got connected just at the edge of timeout
         if self.peer_connected_event.is_set():
             return True
 
@@ -528,8 +517,6 @@ class client_application:
             writer.writerow(row)
     
     def send_file(self, filepath, filename, type, size, target):
-        # filename = os.path.basename(filepath)
-
         body = {"target": target, "fileName": filename, "fileType": type, "fileSize": size}
         message = self.send_data("FILE_TRANSFER", body)
         print(message)
@@ -617,21 +604,16 @@ class client_application:
         """thread to handle login process"""
         self.username = username
         
-        # Connect to server
         self.tcp_connect(self.server_ip, self.server_port)
         self.udp_connect(self.server_ip, self.server_port)
         
-        # Set waiting for response
         self.waiting_for_response = True
-        
-        # Send login message
+
         login_message = self.send_command(
             "LOGIN",
             {"username": username, "password": password}
         )
         self.send_message_tcp(login_message)
-        
-        # Wait for response from queue
         try:
             response = self.message_queue.get(timeout=5)
             response_dict = json.loads(response)
@@ -736,12 +718,10 @@ class client_application:
         return sent_ok
         
     def send_message_group(self, gmessage, group_name):
-        #print("Got here")
         gmessage = self.send_data(
             "GTEXT_MESSAGE",
             {"group-name": group_name, "message": gmessage}
         )
-        print("sending msg:", gmessage)
         self.send_message_tcp(gmessage)
 
         if gmessage == 'done':
@@ -780,11 +760,9 @@ class client_application:
             response = self.message_queue.get(timeout=5)
 
             response = json.loads(response)  
-
-            print("View online response: ", response)
             body = response.get("body",{})
             self.online_users = body.get("users", [])
-            print("users: ", self.online_users)
+            
         except queue.Empty:
             print("Server timeout")
             self.waiting_for_response = False

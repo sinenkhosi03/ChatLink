@@ -8,7 +8,6 @@ import os
 import time
 
 UPLOAD_FOLDER = "app/static/uploads"
-# PORT_TRACKER = 8001
 main = Blueprint("main", __name__)
 
 
@@ -19,8 +18,6 @@ def index():
 
 @main.route("/signIn", methods=["GET","POST"])
 def signin():
-    global PORT_TRACKER
-
     if request.method=="POST":
         name = request.form.get("username")
         pw = request.form.get("password")
@@ -33,7 +30,7 @@ def signin():
             flash(err)
             return redirect(url_for("main.signin"))
 
-        # CHANGED: store client
+       #store client
         clients[name] = client
         user = User(name)
         login_user(user)
@@ -47,7 +44,7 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         confirm_pw = request.form["confirm-password"]
-        # print(username, password, confirm_pw)
+
         client = client_application()
 
         if confirm_pw != password:
@@ -59,7 +56,6 @@ def register():
             flash("Error occured, try again or try a different username.")
             return redirect(url_for("main.register")) 
         
-        # print(username, password, confirm_pw)
         return redirect(url_for("main.signin"))
         
         
@@ -69,7 +65,7 @@ def register():
 @main.route("/logout")
 @login_required
 def logout():
-    client = clients.pop(current_user.id, None)   # CHANGED
+    client = clients.pop(current_user.id, None) 
 
     if client:
         client.logout()
@@ -94,11 +90,7 @@ def create_group():
         grp_name = request.form["gname"]
         grp_members = request.form["members"]
 
-        # print(grp_name, grp_members)
-
         grp_members = grp_members.split(", ")
-        # print(grp_name, grp_members)
-
         status = client.create_group(grp_name, grp_members)
         if status:
             return redirect(url_for("main.group_home"))
@@ -110,14 +102,12 @@ def create_group():
 @login_required
 def chat_home():
 
-    client = clients.get(current_user.id)   # CHANGED
+    client = clients.get(current_user.id)
 
     if not client:
         return redirect(url_for("main.signin"))
 
-    online_users = client.view_online_users() or []
-
-    # print(online_users)
+    online_users = client.view_online_users()
 
     return render_template("chatHome.html", online_users=online_users)
 
@@ -132,33 +122,30 @@ def group_home():
 
     available_grps = client.view_groups() or []
 
-    #print(available_grps)
-
     return render_template("groups.html", available_grps=available_grps)
 
 
 @main.route("/chat/<friend>")
 @login_required
 def chat(friend):
-    client = clients.get(current_user.id)   # CHANGED
-
-    client.close_connection_peer()
+    client = clients.get(current_user.id)
 
     if not client:
         return redirect(url_for("main.signin"))
 
+    client.close_connection_peer()
+
     online_users = client.view_online_users()
 
-    connection_status = client.one_on_one_chat_connection(friend)
-    # if not connection_status:
-    #     return redirect(url_for("main.chat_home"))
+    client.one_on_one_chat_connection(friend)
+
     return render_template("chatScreen.html", online_users=online_users, friend=friend)
 
 
 @main.route("/gchat/<group>")
 @login_required
 def group_chat(group):
-    client = clients.get(current_user.id)   # CHANGED
+    client = clients.get(current_user.id)
 
     if not client:
         return redirect(url_for("main.signin"))
@@ -184,31 +171,21 @@ def send_message():
     file_data = data.get("file")
 
     print(file_data, msg_type)
-    #print(message)
     if message != "" and msg_type=="true":
-        #print("Sending message...")
         sent_status = client.send_message_121(message, name)
 
     print(file_data and msg_type=="true")
 
     if file_data and msg_type=="true":
-        print("sending file...")
         client.send_file(file_data["url"], file_data["filename"], file_data["type"], file_data["size"], name)
     
     if message != "" and msg_type=="false":
-        #print("Sending gmessage...")
         client.send_message_group(message, name)
+    
+    if file_data and msg_type=="false":
+        client.send_file(file_data["url"], file_data["filename"], file_data["type"], file_data["size"], name)
 
     return {"status": "ok"}
-
-# @main.route("/send_gmessage", methods=["POST"])
-# @login_required
-# def send_gmessage():
-
-#     client = clients.get(current_user.id)
-
-#     if not client:
-#         return {"status": "error"}, 400
 
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -217,7 +194,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def upload_file():
     file = request.files["file"]
 
-    # create unique filename
     filename = f"{int(time.time())}_{file.filename}"
 
     filepath = os.path.join(UPLOAD_FOLDER, filename)
