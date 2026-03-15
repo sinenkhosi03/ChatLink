@@ -434,6 +434,18 @@ class client_application:
 
         print("Timeout waiting for connection grant")
         return False
+    
+    def close_connection_peer(self):
+        with self.peer_lock:
+            try:
+                if self.peer_socket:
+                    self.peer_socket.close()
+            except:
+                pass
+
+            self.peer_socket = None
+
+        self.peer_connected_event.clear()
 
     def close_connection(self):
         try:
@@ -533,7 +545,7 @@ class client_application:
 
         with open(filepath, "rb") as file:
             while True:
-                data = file.read(4096)
+                data = file.read(65536)
                 if not data:
                     break
                 receiver_socket.sendall(data)
@@ -547,7 +559,7 @@ class client_application:
         print("Received file: ", fname)
         with open(f"{filename}", "wb") as file:
             while received_bytes < filesize:
-                chunk = sock.recv(min(4096, filesize - received_bytes))
+                chunk = sock.recv(min(65536, filesize - received_bytes))
 
                 if not chunk:
                     break

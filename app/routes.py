@@ -142,6 +142,8 @@ def group_home():
 def chat(friend):
     client = clients.get(current_user.id)   # CHANGED
 
+    client.close_connection_peer()
+
     if not client:
         return redirect(url_for("main.signin"))
 
