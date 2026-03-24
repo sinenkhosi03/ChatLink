@@ -16,7 +16,7 @@ class client_application:
         load_dotenv()
 
         self.server_ip = os.getenv("SERVER_IP")
-        self.server_port = 12000
+        self.server_port = os.getenv("SERVER_PORT")
         self.username = None
         self.ip_addr = ip_addr
         self.peer_port = peer_port
@@ -40,10 +40,11 @@ class client_application:
         self.peer_connected_event = threading.Event()
 
     # TCP / UDP CONNECTIONS
-    def tcp_connect(self, server_ip=None, server_port=12000):
-        if server_ip is None:
-            self.server_ip = server_ip
-        self.server_port = server_port
+    def tcp_connect(self, server_ip=None, server_port=None):
+        if sever_ip is None:
+            server_ip = self.server_ip
+        if server_port is None:
+             server_port = self.server_port
 
         client_socket = socket(AF_INET, SOCK_STREAM)
         client_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
